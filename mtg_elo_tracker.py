@@ -9,7 +9,7 @@ from pathlib import Path
 # File paths
 # =========================
 
-BASE_DIR = Path(r"C:\Users\lhyde\OneDrive - ASML\Personal\Python\Elo_calculatr_DB_user")
+BASE_DIR = Path(r"C:\Users\Liam")
 DB_DIR = BASE_DIR / "database"
 
 PLAYERS_FILE = DB_DIR / "players.txt"
