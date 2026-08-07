@@ -1,0 +1,7 @@
+DeckID,PlayerID,DeckName,Commander,ELO
+D001,P001,Atraxa Superfriends,Atraxa Praetors Voice,1560
+D002,P002,Edgar Vampires,Edgar Markov,1450
+D003,P003,Yuriko Ninjas,Yuriko the Tigers Shadow,1555
+D004,P004,Teysa Aristocrats,Teysa Karlov,1445
+D005,P005,Muldrotha Graveyard,Muldrotha the Gravetide,1510
+D006,P006,Krenko Goblins,Krenko Mob Boss,1480
