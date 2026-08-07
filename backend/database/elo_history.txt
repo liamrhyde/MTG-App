@@ -1,0 +1,1 @@
+GameID,DeckID,OldELO,NewELO,ELOChange

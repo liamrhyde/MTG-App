@@ -1,0 +1,1 @@
+GameID,DeckID,Placement,Eliminations,LifeRemaining,DamageDealt,DamageTaken
