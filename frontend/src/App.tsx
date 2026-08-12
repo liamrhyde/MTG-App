@@ -1,5 +1,7 @@
+import { Homepage } from "./views/Homepage";
+
 function App() {
-    return <>MTG Tracker Goes Here</>;
+    return <Homepage />;
 }
 
 export default App;
