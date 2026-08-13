@@ -1,4 +1,12 @@
 import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 export const Homepage = () => {
     return (
@@ -34,12 +42,29 @@ export const Homepage = () => {
                     <Button className="w-full md:flex-1" size="lg">
                         Start Game
                     </Button>
-                    <Button className="w-full md:flex-1" variant="outline" size="lg">
-                        Join Game
-                    </Button>
-                    <Button className="w-full md:flex-1" variant="outline" size="lg">
-                        Record Game
-                    </Button>
+
+                    {/* Split button: Join Game (default) + dropdown */}
+                    <div className="flex w-full md:flex-1 gap-0">
+                        <Button className="flex-1 rounded-r-none" variant="outline" size="lg">
+                            Join Game
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger>
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="rounded-l-none border-l-0 px-2 w-auto"
+                                >
+                                    <ChevronDown className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem>Record Game</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>Manage Decks</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
                 {/* Safe area spacer for iOS notch/home indicator */}
                 <div className="h-safe-bottom" style={{ height: 'max(0.5rem, env(safe-area-inset-bottom))' }} />
