@@ -1,3 +1,4 @@
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -6,9 +7,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 
 export const Homepage = () => {
+    const [, navigate] = useLocation();
     return (
         <div className="flex flex-col h-screen bg-background">
             {/* Main content - scrollable */}
@@ -41,7 +43,11 @@ export const Homepage = () => {
             {/* Fixed bottom nav - safe area aware */}
             <div className="border-t bg-background/80 backdrop-blur-sm sticky bottom-0">
                 <div className="p-4 space-y-2 md:space-y-0 md:flex md:gap-3 max-w-screen-xl mx-auto">
-                    <Button className="w-full md:flex-1" size="lg">
+                    <Button
+                        className="w-full md:flex-1"
+                        size="lg"
+                        onClick={() => navigate("/create")}
+                    >
                         Start Game
                     </Button>
 
@@ -64,7 +70,7 @@ export const Homepage = () => {
                                     />
                                 }
                             >
-                                <ChevronDown className="h-4 w-4" />
+                                <ChevronUp className="h-4 w-4" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-64">
                                 <DropdownMenuItem>Record Game</DropdownMenuItem>
