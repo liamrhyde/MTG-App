@@ -9,6 +9,7 @@ import {
     ComboboxItem,
     ComboboxEmpty,
     ComboboxGroup,
+    ComboboxCollection,
     ComboboxLabel,
     ComboboxSeparator,
 } from "@/components/ui/combobox";
@@ -59,6 +60,14 @@ export const DeckSelector = ({
     const otherDecks = selectedPlayer
         ? decks.filter((d) => d.player !== selectedPlayer.id)
         : [];
+    const availableDecks = [
+        {
+            value: "Your Decks",
+            items: playerDecks,
+        },
+        { value: "Other Player Decks", items: otherDecks },
+    ] as const;
+    console.log(availableDecks);
 
     const handlePlayerChange = (playerName: string | null) => {
         const player = playerName
@@ -100,6 +109,7 @@ export const DeckSelector = ({
                     <Combobox
                         value={selectedPlayer?.name ?? ""}
                         onValueChange={handlePlayerChange}
+                        items={players}
                     >
                         <ComboboxInput
                             showClear={!!selectedPlayer}
@@ -108,14 +118,14 @@ export const DeckSelector = ({
                         <ComboboxContent>
                             <ComboboxEmpty>No players found.</ComboboxEmpty>
                             <ComboboxList>
-                                {players.map((player) => (
+                                {(player) => (
                                     <ComboboxItem
                                         key={player.id}
                                         value={player.name}
                                     >
                                         {player.name}
                                     </ComboboxItem>
-                                ))}
+                                )}
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
@@ -130,6 +140,7 @@ export const DeckSelector = ({
                         value={value?.deck?.name ?? ""}
                         onValueChange={handleDeckChange}
                         disabled={!selectedPlayer}
+                        items={availableDecks}
                     >
                         <ComboboxInput
                             showClear={!!value?.deck}
@@ -142,43 +153,31 @@ export const DeckSelector = ({
                         />
                         {/* TODO: Render custom Deck tile with more deck info */}
                         <ComboboxContent>
+                            <ComboboxEmpty>No decks found.</ComboboxEmpty>
                             <ComboboxList>
-                                {playerDecks.length > 0 && (
-                                    <ComboboxGroup>
+                                {(group, index) => (
+                                    <ComboboxGroup
+                                        key={group.value}
+                                        items={group.items}
+                                    >
                                         <ComboboxLabel>
-                                            Your Decks
+                                            {group.value}
                                         </ComboboxLabel>
-                                        {playerDecks.map((deck) => (
-                                            <ComboboxItem
-                                                key={deck.id}
-                                                value={deck.id}
-                                            >
-                                                {deck.name}
-                                            </ComboboxItem>
-                                        ))}
+                                        <ComboboxCollection>
+                                            {(deck) => (
+                                                <ComboboxItem
+                                                    key={deck.id}
+                                                    value={deck.id}
+                                                >
+                                                    {deck.name}
+                                                </ComboboxItem>
+                                            )}
+                                        </ComboboxCollection>
+                                        {index < availableDecks.length - 1 && (
+                                            <ComboboxSeparator />
+                                        )}
                                     </ComboboxGroup>
                                 )}
-                                {playerDecks.length > 0 &&
-                                    otherDecks.length > 0 && (
-                                        <ComboboxSeparator />
-                                    )}
-                                {otherDecks.length > 0 && (
-                                    <ComboboxGroup>
-                                        <ComboboxLabel>
-                                            Other Decks
-                                        </ComboboxLabel>
-                                        {otherDecks.map((deck) => (
-                                            <ComboboxItem
-                                                key={deck.id}
-                                                value={deck.id}
-                                            >
-                                                {deck.name}
-                                            </ComboboxItem>
-                                        ))}
-                                    </ComboboxGroup>
-                                )}
-
-                                <ComboboxEmpty>No decks found.</ComboboxEmpty>
                                 {/* TODO: Consider direct 'add deck' action */}
                             </ComboboxList>
                         </ComboboxContent>
