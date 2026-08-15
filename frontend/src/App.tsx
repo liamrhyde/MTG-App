@@ -1,11 +1,11 @@
 import { Router, Route } from "wouter";
 import { Homepage } from "./views/Homepage";
-import { CreateGame } from "./views/Create";
+import { NewGame } from "./views/NewGame";
 
 function App() {
     return (
         <Router>
-            <Route path="/create" component={CreateGame} />
+            <Route path="/game/new" component={NewGame} />
             <Route path="/" component={Homepage} />
         </Router>
     );

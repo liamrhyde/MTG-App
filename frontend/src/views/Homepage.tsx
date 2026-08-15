@@ -46,9 +46,9 @@ export const Homepage = () => {
                     <Button
                         className="w-full md:flex-1"
                         size="lg"
-                        onClick={() => navigate("/create")}
+                        onClick={() => navigate("/game/new")}
                     >
-                        Start Game
+                        Start New Game
                     </Button>
 
                     {/* Split button: Join Game (default) + dropdown */}

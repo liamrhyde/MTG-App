@@ -37,7 +37,7 @@ const MOCK_PLAYERS: Player[] = [
     { name: "Liam", decks: [] },
 ];
 
-export const CreateGame = () => {
+export const NewGame = () => {
     const newGameForm = useForm({ schema: PlayerDeckSchema });
 
     const removeItem = (index: number) =>
@@ -66,7 +66,7 @@ export const CreateGame = () => {
                 {/* Main content - scrollable */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-6 max-w-screen-xl mx-auto">
-                        <h1 className="text-3xl font-bold mb-8">Create Game</h1>
+                        <h1 className="text-3xl font-bold mb-8">New Game</h1>
 
                         {/* Player/Deck Selectors */}
                         <FieldArray of={newGameForm} path={["players"]}>
