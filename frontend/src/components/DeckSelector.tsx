@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/combobox";
 
 export type DeckSelectorValue = {
-    playerName: string | null;
-    deckName: string | null;
+    playerName?: string;
+    deckName?: string;
 };
 
 export interface Player {
@@ -22,9 +22,10 @@ export interface Player {
 
 interface DeckSelectorProps {
     value: DeckSelectorValue;
-    onChange: (value: DeckSelectorValue) => void;
+    onChange: (index: number, value: DeckSelectorValue) => void;
     players: Player[];
-    onRemove?: () => void;
+    onRemove?: (index: number) => void;
+    index: number;
 }
 
 export const DeckSelector = ({
@@ -32,21 +33,31 @@ export const DeckSelector = ({
     onChange,
     players,
     onRemove,
+    index,
 }: DeckSelectorProps) => {
-    const [playerOpen, setPlayerOpen] = useState(false);
-    const [deckOpen, setDeckOpen] = useState(false);
+    const [playerName, setPlayerName] = useState(value.playerName ?? "");
+    const [deckName, setDeckName] = useState(value.deckName ?? "");
 
-    const currentPlayer = players.find((p) => p.name === value.playerName);
+    const currentPlayer = players.find((p) => p.name === playerName);
     const availableDecks = currentPlayer?.decks ?? [];
 
-    const handlePlayerChange = (playerName: string | null) => {
-        onChange({ playerName, deckName: null });
-        setPlayerOpen(false);
+    const notifyChange = (player: string, deck: string) => {
+        onChange(index, { playerName: player, deckName: deck });
     };
 
-    const handleDeckChange = (deckName: string | null) => {
-        onChange({ ...value, deckName });
-        setDeckOpen(false);
+    const handlePlayerChange = (newPlayerName: string | null) => {
+        if (newPlayerName) {
+            setPlayerName(newPlayerName);
+            setDeckName("");
+            notifyChange(newPlayerName, "");
+        }
+    };
+
+    const handleDeckChange = (newDeckName: string | null) => {
+        if (newDeckName) {
+            setDeckName(newDeckName);
+            notifyChange(playerName, newDeckName);
+        }
     };
 
     return (
@@ -54,7 +65,7 @@ export const DeckSelector = ({
             {/* Remove button - top right corner */}
             {onRemove && (
                 <button
-                    onClick={onRemove}
+                    onClick={() => onRemove(index)}
                     className="absolute top-3 right-3 p-1.5 hover:bg-muted rounded-md transition-colors"
                     aria-label="Remove player"
                 >
@@ -70,12 +81,10 @@ export const DeckSelector = ({
                         Player
                     </label>
                     <Combobox
-                        open={playerOpen}
-                        onOpenChange={setPlayerOpen}
-                        value={value.playerName ?? ""}
+                        value={playerName}
                         onValueChange={handlePlayerChange}
                     >
-                        <ComboboxInput showClear={!!value.playerName} />
+                        <ComboboxInput showClear={!!playerName} />
                         <ComboboxContent>
                             <ComboboxList>
                                 {players.map((player) => (
@@ -98,22 +107,20 @@ export const DeckSelector = ({
                         Deck
                     </label>
                     <Combobox
-                        open={deckOpen}
-                        onOpenChange={setDeckOpen}
-                        value={value.deckName ?? ""}
+                        value={deckName}
                         onValueChange={handleDeckChange}
-                        disabled={!value.playerName}
+                        disabled={!playerName}
                     >
                         <ComboboxInput
-                            showClear={!!value.deckName}
+                            showClear={!!deckName}
                             placeholder={
-                                !value.playerName
+                                !playerName
                                     ? "Select a player first"
                                     : "Select a deck"
                             }
                         />
                         {/* TODO: Render custom Deck tile with more deck info */}
-                        {value.playerName && (
+                        {playerName && (
                             <ComboboxContent>
                                 <ComboboxList>
                                     {availableDecks.map((deck) => (
@@ -122,10 +129,8 @@ export const DeckSelector = ({
                                         </ComboboxItem>
                                     ))}
                                     {/* TODO: Consider direct 'add deck' action */}
-                                    <ComboboxEmpty>
-                                        No decks found.
-                                    </ComboboxEmpty>
                                 </ComboboxList>
+                                <ComboboxEmpty>No decks found.</ComboboxEmpty>
                             </ComboboxContent>
                         )}
                     </Combobox>

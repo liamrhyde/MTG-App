@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     DeckSelector,
@@ -6,11 +5,29 @@ import {
     type Player,
 } from "@/components/DeckSelector";
 
-type Selection = {
-    id: string;
-    playerName: string | null;
-    deckName: string | null;
-};
+import {
+    Field,
+    FieldArray,
+    Form,
+    insert,
+    remove,
+    replace,
+    useForm,
+} from "@formisch/react";
+import * as v from "valibot";
+
+const PlayerDeckSchema = v.object({
+    players: v.pipe(
+        v.array(
+            v.object({
+                playerName: v.pipe(v.string(), v.nonEmpty("Select a player")),
+                deckName: v.pipe(v.string(), v.nonEmpty("Select a deck")),
+            }),
+        ),
+        v.maxLength(8),
+        v.minLength(2, "Minumum 2 players required"),
+    ),
+});
 
 const MOCK_PLAYERS: Player[] = [
     { name: "Alice", decks: ["Mono Red Aggro", "Golgari Midrange"] },
@@ -21,90 +38,93 @@ const MOCK_PLAYERS: Player[] = [
 ];
 
 export const CreateGame = () => {
-    const [selections, setSelections] = useState<Selection[]>([
-        { id: crypto.randomUUID(), playerName: null, deckName: null },
-    ]);
+    const newGameForm = useForm({ schema: PlayerDeckSchema });
 
-    const updateSelection = (id: string, next: DeckSelectorValue) => {
-        setSelections((prev) =>
-            prev.map((sel) => (sel.id === id ? { ...sel, ...next } : sel)),
-        );
+    const removeItem = (index: number) =>
+        remove(newGameForm, { path: ["players"], at: index });
+
+    const changeItem = (index: number, value: DeckSelectorValue) => {
+        replace(newGameForm, {
+            path: ["players"],
+            at: index,
+            initialInput: value,
+        });
     };
 
-    const removeSelection = (id: string) => {
-        setSelections((prev) => prev.filter((sel) => sel.id !== id));
-    };
+    const addSelection = () =>
+        insert(newGameForm, {
+            path: ["players"],
+            initialInput: { playerName: undefined, deckName: undefined },
+        });
 
-    const addSelection = () => {
-        if (selections.length < 8) {
-            setSelections((prev) => [
-                ...prev,
-                { id: crypto.randomUUID(), playerName: null, deckName: null },
-            ]);
-        }
-    };
+    const handleSubmit = (values: v.InferOutput<typeof PlayerDeckSchema>) =>
+        console.log(values);
 
     return (
         <div className="flex flex-col h-screen bg-background">
-            {/* Main content - scrollable */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="p-6 max-w-screen-xl mx-auto">
-                    <h1 className="text-3xl font-bold mb-8">Create Game</h1>
+            <Form of={newGameForm} onSubmit={handleSubmit}>
+                {/* Main content - scrollable */}
+                <div className="flex-1 overflow-y-auto">
+                    <div className="p-6 max-w-screen-xl mx-auto">
+                        <h1 className="text-3xl font-bold mb-8">Create Game</h1>
 
-                    {/* Player/Deck Selectors */}
-                    <div className="space-y-4 mb-6">
-                        {selections.map((selection) => (
-                            <DeckSelector
-                                key={selection.id}
-                                value={{
-                                    playerName: selection.playerName,
-                                    deckName: selection.deckName,
-                                }}
-                                onChange={(next) =>
-                                    updateSelection(selection.id, next)
-                                }
-                                players={MOCK_PLAYERS}
-                                onRemove={
-                                    selections.length > 1
-                                        ? () => removeSelection(selection.id)
-                                        : undefined
-                                }
-                            />
-                        ))}
+                        {/* Player/Deck Selectors */}
+                        <FieldArray of={newGameForm} path={["players"]}>
+                            {(fieldArray) => (
+                                <>
+                                    <div className="space-y-4 mb-6">
+                                        {fieldArray.items.map((item, index) => (
+                                            <Field
+                                                key={item}
+                                                of={newGameForm}
+                                                path={["players", index]}
+                                            >
+                                                {(field) => (
+                                                    <DeckSelector
+                                                        index={index}
+                                                        players={MOCK_PLAYERS}
+                                                        onRemove={removeItem}
+                                                        onChange={changeItem}
+                                                        value={field.input}
+                                                    />
+                                                )}
+                                            </Field>
+                                        ))}
+                                    </div>
+                                    {/* Add Player Button */}
+                                    <Button
+                                        onClick={addSelection}
+                                        variant="outline"
+                                        disabled={fieldArray.items.length >= 8}
+                                    >
+                                        + Add Player
+                                    </Button>
+                                </>
+                            )}
+                        </FieldArray>
                     </div>
-
-                    {/* Add Player Button */}
-                    <Button
-                        onClick={addSelection}
-                        variant="outline"
-                        disabled={selections.length >= 8}
-                    >
-                        + Add Player
-                    </Button>
-
-                    {selections.length >= 8 && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                            Maximum 8 players reached
-                        </p>
-                    )}
                 </div>
-            </div>
 
-            {/* Fixed bottom nav - safe area aware */}
-            <div className="border-t bg-background/80 backdrop-blur-sm sticky bottom-0">
-                <div className="p-4 space-y-2 md:space-y-0 md:flex md:gap-3 max-w-screen-xl mx-auto">
-                    <Button className="w-full md:flex-1" size="lg">
-                        Start Game
-                    </Button>
+                {/* Fixed bottom nav - safe area aware */}
+                <div className="border-t bg-background/80 backdrop-blur-sm fixed left-0 right-0 bottom-0">
+                    <div className="p-4 space-y-2 md:space-y-0 md:flex md:gap-3 max-w-screen-xl mx-auto">
+                        <Button
+                            className="w-full md:flex-1"
+                            size="lg"
+                            type="submit"
+                        >
+                            Start Game
+                        </Button>
+                    </div>
+                    {/* Safe area spacer for iOS notch/home indicator */}
+                    <div
+                        className="h-safe-bottom"
+                        style={{
+                            height: "max(0.5rem, env(safe-area-inset-bottom))",
+                        }}
+                    />
                 </div>
-                {/* Safe area spacer for iOS notch/home indicator */}
-                <div
-                    className="h-safe-bottom"
-                    style={{
-                        height: "max(0.5rem, env(safe-area-inset-bottom))",
-                    }}
-                />
-            </div>
+            </Form>
         </div>
     );
 };
