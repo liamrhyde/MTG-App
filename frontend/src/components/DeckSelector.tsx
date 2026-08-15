@@ -8,22 +8,34 @@ import {
     ComboboxList,
     ComboboxItem,
     ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxLabel,
+    ComboboxSeparator,
 } from "@/components/ui/combobox";
 
-export type DeckSelectorValue = {
-    playerName?: string;
-    deckName?: string;
-};
+export type UUID = string;
 
 export interface Player {
+    id: UUID;
     name: string;
-    decks: string[];
+}
+
+export interface Deck {
+    id: UUID;
+    name: string;
+    player: UUID;
+}
+
+export interface DeckSelection {
+    player: Player;
+    deck?: Deck;
 }
 
 interface DeckSelectorProps {
-    value: DeckSelectorValue;
-    onChange: (index: number, value: DeckSelectorValue) => void;
+    value: DeckSelection | undefined;
+    onChange: (index: number, value: DeckSelection) => void;
     players: Player[];
+    decks: Deck[];
     onRemove?: (index: number) => void;
     index: number;
 }
@@ -32,31 +44,36 @@ export const DeckSelector = ({
     value,
     onChange,
     players,
+    decks,
     onRemove,
     index,
 }: DeckSelectorProps) => {
-    const [playerName, setPlayerName] = useState(value.playerName ?? "");
-    const [deckName, setDeckName] = useState(value.deckName ?? "");
+    const [selectedPlayer, setSelectedPlayer] = useState<Player | undefined>(
+        () =>
+            value ? players.find((p) => p.id === value.player.id) : undefined,
+    );
 
-    const currentPlayer = players.find((p) => p.name === playerName);
-    const availableDecks = currentPlayer?.decks ?? [];
+    const playerDecks = selectedPlayer
+        ? decks.filter((d) => d.player === selectedPlayer.id)
+        : [];
+    const otherDecks = selectedPlayer
+        ? decks.filter((d) => d.player !== selectedPlayer.id)
+        : [];
 
-    const notifyChange = (player: string, deck: string) => {
-        onChange(index, { playerName: player, deckName: deck });
-    };
-
-    const handlePlayerChange = (newPlayerName: string | null) => {
-        if (newPlayerName) {
-            setPlayerName(newPlayerName);
-            setDeckName("");
-            notifyChange(newPlayerName, "");
+    const handlePlayerChange = (playerName: string | null) => {
+        const player = playerName
+            ? players.find((p) => p.name === playerName)
+            : undefined;
+        setSelectedPlayer(player);
+        if (player) {
+            onChange(index, { player });
         }
     };
 
-    const handleDeckChange = (newDeckName: string | null) => {
-        if (newDeckName) {
-            setDeckName(newDeckName);
-            notifyChange(playerName, newDeckName);
+    const handleDeckChange = (deckId: string | null) => {
+        const deck = deckId ? decks.find((d) => d.id === deckId) : undefined;
+        if (deck && selectedPlayer) {
+            onChange(index, { player: selectedPlayer, deck });
         }
     };
 
@@ -81,21 +98,24 @@ export const DeckSelector = ({
                         Player
                     </label>
                     <Combobox
-                        value={playerName}
+                        value={selectedPlayer?.name ?? ""}
                         onValueChange={handlePlayerChange}
                     >
-                        <ComboboxInput showClear={!!playerName} />
+                        <ComboboxInput
+                            showClear={!!selectedPlayer}
+                            placeholder="Select a player"
+                        />
                         <ComboboxContent>
+                            <ComboboxEmpty>No players found.</ComboboxEmpty>
                             <ComboboxList>
                                 {players.map((player) => (
                                     <ComboboxItem
-                                        key={player.name}
+                                        key={player.id}
                                         value={player.name}
                                     >
                                         {player.name}
                                     </ComboboxItem>
                                 ))}
-                                <ComboboxEmpty>No players found.</ComboboxEmpty>
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
@@ -107,32 +127,61 @@ export const DeckSelector = ({
                         Deck
                     </label>
                     <Combobox
-                        value={deckName}
+                        value={value?.deck?.name ?? ""}
                         onValueChange={handleDeckChange}
-                        disabled={!playerName}
+                        disabled={!selectedPlayer}
                     >
                         <ComboboxInput
-                            showClear={!!deckName}
+                            showClear={!!value?.deck}
                             placeholder={
-                                !playerName
+                                !selectedPlayer
                                     ? "Select a player first"
                                     : "Select a deck"
                             }
+                            disabled={!selectedPlayer}
                         />
                         {/* TODO: Render custom Deck tile with more deck info */}
-                        {playerName && (
-                            <ComboboxContent>
-                                <ComboboxList>
-                                    {availableDecks.map((deck) => (
-                                        <ComboboxItem key={deck} value={deck}>
-                                            {deck}
-                                        </ComboboxItem>
-                                    ))}
-                                    {/* TODO: Consider direct 'add deck' action */}
-                                </ComboboxList>
+                        <ComboboxContent>
+                            <ComboboxList>
+                                {playerDecks.length > 0 && (
+                                    <ComboboxGroup>
+                                        <ComboboxLabel>
+                                            Your Decks
+                                        </ComboboxLabel>
+                                        {playerDecks.map((deck) => (
+                                            <ComboboxItem
+                                                key={deck.id}
+                                                value={deck.id}
+                                            >
+                                                {deck.name}
+                                            </ComboboxItem>
+                                        ))}
+                                    </ComboboxGroup>
+                                )}
+                                {playerDecks.length > 0 &&
+                                    otherDecks.length > 0 && (
+                                        <ComboboxSeparator />
+                                    )}
+                                {otherDecks.length > 0 && (
+                                    <ComboboxGroup>
+                                        <ComboboxLabel>
+                                            Other Decks
+                                        </ComboboxLabel>
+                                        {otherDecks.map((deck) => (
+                                            <ComboboxItem
+                                                key={deck.id}
+                                                value={deck.id}
+                                            >
+                                                {deck.name}
+                                            </ComboboxItem>
+                                        ))}
+                                    </ComboboxGroup>
+                                )}
+
                                 <ComboboxEmpty>No decks found.</ComboboxEmpty>
-                            </ComboboxContent>
-                        )}
+                                {/* TODO: Consider direct 'add deck' action */}
+                            </ComboboxList>
+                        </ComboboxContent>
                     </Combobox>
                 </div>
             </div>

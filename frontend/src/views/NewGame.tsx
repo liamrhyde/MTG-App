@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import {
     DeckSelector,
-    type DeckSelectorValue,
+    type Deck,
     type Player,
+    type DeckSelection,
 } from "@/components/DeckSelector";
 
 import {
@@ -16,12 +17,21 @@ import {
 } from "@formisch/react";
 import * as v from "valibot";
 
-const PlayerDeckSchema = v.object({
-    players: v.pipe(
+const GameSelectionSchema = v.object({
+    selectedDecks: v.pipe(
         v.array(
             v.object({
-                playerName: v.pipe(v.string(), v.nonEmpty("Select a player")),
-                deckName: v.pipe(v.string(), v.nonEmpty("Select a deck")),
+                player: v.object({
+                    id: v.pipe(v.string(), v.nonEmpty()),
+                    name: v.pipe(v.string(), v.nonEmpty()),
+                }),
+                deck: v.optional(
+                    v.object({
+                        id: v.pipe(v.string(), v.nonEmpty()),
+                        name: v.pipe(v.string(), v.nonEmpty()),
+                        player: v.pipe(v.string(), v.nonEmpty()),
+                    }),
+                ),
             }),
         ),
         v.maxLength(8),
@@ -30,34 +40,44 @@ const PlayerDeckSchema = v.object({
 });
 
 const MOCK_PLAYERS: Player[] = [
-    { name: "Alice", decks: ["Mono Red Aggro", "Golgari Midrange"] },
-    { name: "Bob", decks: ["Azorius Control"] },
-    { name: "Charlie", decks: ["Gruul Stompy", "Boros Aggro", "Simic Ramp"] },
-    { name: "Dana", decks: ["Dimir Mill", "Selesnya Tokens"] },
-    { name: "Liam", decks: [] },
+    { id: "a1", name: "Alice" },
+    { id: "b2", name: "Bob" },
+    { id: "c3", name: "Charlie" },
+    { id: "d4", name: "Dana" },
+    { id: "l5", name: "Liam" },
+];
+
+const MOCK_DECKS: Deck[] = [
+    { id: "d-a1-1", name: "Mono Red Aggro", player: "a1" },
+    { id: "d-a1-2", name: "Golgari Midrange", player: "a1" },
+    { id: "d-b2-1", name: "Azorius Control", player: "b2" },
+    { id: "d-c3-1", name: "Gruul Stompy", player: "c3" },
+    { id: "d-c3-2", name: "Boros Aggro", player: "c3" },
+    { id: "d-c3-3", name: "Simic Ramp", player: "c3" },
+    { id: "d-d4-1", name: "Dimir Mill", player: "d4" },
+    { id: "d-d4-2", name: "Selesnya Tokens", player: "d4" },
 ];
 
 export const NewGame = () => {
-    const newGameForm = useForm({ schema: PlayerDeckSchema });
+    const newGameForm = useForm({ schema: GameSelectionSchema });
 
     const removeItem = (index: number) =>
-        remove(newGameForm, { path: ["players"], at: index });
+        remove(newGameForm, { path: ["selectedDecks"], at: index });
 
-    const changeItem = (index: number, value: DeckSelectorValue) => {
+    const changeItem = (index: number, selection: DeckSelection) => {
         replace(newGameForm, {
-            path: ["players"],
+            path: ["selectedDecks"],
             at: index,
-            initialInput: value,
+            initialInput: selection,
         });
     };
 
     const addSelection = () =>
         insert(newGameForm, {
-            path: ["players"],
-            initialInput: { playerName: undefined, deckName: undefined },
+            path: ["selectedDecks"],
         });
 
-    const handleSubmit = (values: v.InferOutput<typeof PlayerDeckSchema>) =>
+    const handleSubmit = (values: v.InferOutput<typeof GameSelectionSchema>) =>
         console.log(values);
 
     return (
@@ -69,7 +89,7 @@ export const NewGame = () => {
                         <h1 className="text-3xl font-bold mb-8">New Game</h1>
 
                         {/* Player/Deck Selectors */}
-                        <FieldArray of={newGameForm} path={["players"]}>
+                        <FieldArray of={newGameForm} path={["selectedDecks"]}>
                             {(fieldArray) => (
                                 <>
                                     <div className="space-y-4 mb-6">
@@ -77,15 +97,16 @@ export const NewGame = () => {
                                             <Field
                                                 key={item}
                                                 of={newGameForm}
-                                                path={["players", index]}
+                                                path={["selectedDecks", index]}
                                             >
                                                 {(field) => (
                                                     <DeckSelector
                                                         index={index}
                                                         players={MOCK_PLAYERS}
+                                                        decks={MOCK_DECKS}
                                                         onRemove={removeItem}
                                                         onChange={changeItem}
-                                                        value={field.input}
+                                                        value={field.input as DeckSelection | undefined}
                                                     />
                                                 )}
                                             </Field>
