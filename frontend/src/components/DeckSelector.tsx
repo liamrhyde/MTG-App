@@ -28,7 +28,7 @@ export interface Deck {
 }
 
 export interface DeckSelection {
-    player: Player;
+    player?: Player;
     deck?: Deck;
 }
 
@@ -51,7 +51,7 @@ export const DeckSelector = ({
 }: DeckSelectorProps) => {
     const [selectedPlayer, setSelectedPlayer] = useState<Player | undefined>(
         () =>
-            value ? players.find((p) => p.id === value.player.id) : undefined,
+            value ? players.find((p) => p.id === value.player?.id) : undefined,
     );
 
     const playerDecks = selectedPlayer
@@ -67,16 +67,13 @@ export const DeckSelector = ({
         },
         { value: "Other Player Decks", items: otherDecks },
     ] as const;
-    console.log(availableDecks);
 
     const handlePlayerChange = (playerName: string | null) => {
         const player = playerName
             ? players.find((p) => p.name === playerName)
             : undefined;
         setSelectedPlayer(player);
-        if (player) {
-            onChange(index, { player });
-        }
+        onChange(index, { player, deck: undefined });
     };
 
     const handleDeckChange = (deckId: string | null) => {
@@ -107,13 +104,14 @@ export const DeckSelector = ({
                         Player
                     </label>
                     <Combobox
-                        value={selectedPlayer?.name ?? ""}
+                        value={selectedPlayer?.id}
                         onValueChange={handlePlayerChange}
                         items={players}
                     >
                         <ComboboxInput
                             showClear={!!selectedPlayer}
                             placeholder="Select a player"
+                            value={selectedPlayer?.name}
                         />
                         <ComboboxContent>
                             <ComboboxEmpty>No players found.</ComboboxEmpty>
