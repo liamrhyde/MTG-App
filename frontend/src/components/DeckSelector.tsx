@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { X } from "lucide-react";
 
 import {
@@ -27,32 +26,42 @@ export interface Deck {
     player: UUID;
 }
 
-export interface DeckSelection {
-    player?: Player;
-    deck?: Deck;
+export interface DeckSelectionIds {
+    playerId?: UUID;
+    deckId?: UUID;
 }
 
 interface DeckSelectorProps {
-    value: DeckSelection | undefined;
-    onChange: (index: number, value: DeckSelection) => void;
-    players: Player[];
-    decks: Deck[];
+    value: DeckSelectionIds | undefined;
+    onChange: (index: number, value: DeckSelectionIds) => void;
+    playersById: Record<UUID, Player>;
+    decksById: Record<UUID, Deck>;
     onRemove?: (index: number) => void;
     index: number;
+    getFormErrors: (
+        index: number,
+        fieldName: "playerId" | "deckId",
+    ) => [string, ...string[]] | null;
 }
 
 export const DeckSelector = ({
     value,
     onChange,
-    players,
-    decks,
+    playersById,
+    decksById,
     onRemove,
     index,
+    getFormErrors,
 }: DeckSelectorProps) => {
-    const [selectedPlayer, setSelectedPlayer] = useState<Player | undefined>(
-        () =>
-            value ? players.find((p) => p.id === value.player?.id) : undefined,
-    );
+    const selectedPlayer = value?.playerId
+        ? playersById[value.playerId]
+        : undefined;
+    const selectedDeck = value?.deckId ? decksById[value.deckId] : undefined;
+    const players = Object.values(playersById);
+    const decks = Object.values(decksById);
+
+    const playerErrors = getFormErrors(index, "playerId");
+    const deckErrors = getFormErrors(index, "deckId");
 
     const playerDecks = selectedPlayer
         ? decks.filter((d) => d.player === selectedPlayer.id)
@@ -60,27 +69,24 @@ export const DeckSelector = ({
     const otherDecks = selectedPlayer
         ? decks.filter((d) => d.player !== selectedPlayer.id)
         : [];
+
     const availableDecks = [
         {
             value: "Your Decks",
             items: playerDecks,
         },
         { value: "Other Player Decks", items: otherDecks },
-    ] as const;
+    ];
 
-    const handlePlayerChange = (playerName: string | null) => {
-        const player = playerName
-            ? players.find((p) => p.name === playerName)
-            : undefined;
-        setSelectedPlayer(player);
-        onChange(index, { player, deck: undefined });
+    const handlePlayerChange = (playerId: string | null) => {
+        onChange(index, { playerId: playerId ?? undefined, deckId: undefined });
     };
 
     const handleDeckChange = (deckId: string | null) => {
-        const deck = deckId ? decks.find((d) => d.id === deckId) : undefined;
-        if (deck && selectedPlayer) {
-            onChange(index, { player: selectedPlayer, deck });
-        }
+        onChange(index, {
+            playerId: selectedPlayer?.id,
+            deckId: deckId ?? undefined,
+        });
     };
 
     return (
@@ -104,7 +110,7 @@ export const DeckSelector = ({
                         Player
                     </label>
                     <Combobox
-                        value={selectedPlayer?.id}
+                        value={selectedPlayer?.id ?? ""}
                         onValueChange={handlePlayerChange}
                         items={players}
                     >
@@ -119,7 +125,7 @@ export const DeckSelector = ({
                                 {(player) => (
                                     <ComboboxItem
                                         key={player.id}
-                                        value={player.name}
+                                        value={player.id}
                                     >
                                         {player.name}
                                     </ComboboxItem>
@@ -127,6 +133,11 @@ export const DeckSelector = ({
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
+                    {playerErrors && (
+                        <p className="text-sm text-destructive mt-2">
+                            {playerErrors[0]}
+                        </p>
+                    )}
                 </div>
 
                 {/* Deck Combobox */}
@@ -135,13 +146,13 @@ export const DeckSelector = ({
                         Deck
                     </label>
                     <Combobox
-                        value={value?.deck?.name ?? ""}
+                        value={selectedDeck?.name ?? ""}
                         onValueChange={handleDeckChange}
                         disabled={!selectedPlayer}
                         items={availableDecks}
                     >
                         <ComboboxInput
-                            showClear={!!value?.deck}
+                            showClear={!!selectedDeck}
                             placeholder={
                                 !selectedPlayer
                                     ? "Select a player first"
@@ -180,6 +191,11 @@ export const DeckSelector = ({
                             </ComboboxList>
                         </ComboboxContent>
                     </Combobox>
+                    {deckErrors && (
+                        <p className="text-sm text-destructive mt-2">
+                            {deckErrors[0]}
+                        </p>
+                    )}
                 </div>
             </div>
 

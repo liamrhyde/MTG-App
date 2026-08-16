@@ -2,36 +2,32 @@ import { Button } from "@/components/ui/button";
 import {
     DeckSelector,
     type Deck,
+    type DeckSelectionIds,
     type Player,
-    type DeckSelection,
+    type UUID,
 } from "@/components/DeckSelector";
 
 import {
     Field,
     FieldArray,
     Form,
+    getErrors,
     insert,
     remove,
     replace,
     useForm,
 } from "@formisch/react";
 import * as v from "valibot";
+import { useCallback } from "react";
 
+// TODO: Hoist schemas and types to NewGame schema.ts file
 const GameSelectionSchema = v.object({
     selectedDecks: v.pipe(
+        // TODO: Consider input and output schemas
         v.array(
             v.object({
-                player: v.object({
-                    id: v.pipe(v.string(), v.nonEmpty()),
-                    name: v.pipe(v.string(), v.nonEmpty()),
-                }),
-                deck: v.optional(
-                    v.object({
-                        id: v.pipe(v.string(), v.nonEmpty()),
-                        name: v.pipe(v.string(), v.nonEmpty()),
-                        player: v.pipe(v.string(), v.nonEmpty()),
-                    }),
-                ),
+                playerId: v.pipe(v.string(), v.nonEmpty("Player required")),
+                deckId: v.pipe(v.string(), v.nonEmpty("Deck required")),
             }),
         ),
         v.maxLength(8),
@@ -39,24 +35,24 @@ const GameSelectionSchema = v.object({
     ),
 });
 
-const MOCK_PLAYERS: Player[] = [
-    { id: "a1", name: "Alice" },
-    { id: "b2", name: "Bob" },
-    { id: "c3", name: "Charlie" },
-    { id: "d4", name: "Dana" },
-    { id: "l5", name: "Liam" },
-];
+const MOCK_PLAYERS: Record<UUID, Player> = {
+    a1: { id: "a1", name: "Alice" },
+    b2: { id: "b2", name: "Bob" },
+    c3: { id: "c3", name: "Charlie" },
+    d4: { id: "d4", name: "Dana" },
+    l5: { id: "l5", name: "Liam" },
+};
 
-const MOCK_DECKS: Deck[] = [
-    { id: "d-a1-1", name: "Mono Red Aggro", player: "a1" },
-    { id: "d-a1-2", name: "Golgari Midrange", player: "a1" },
-    { id: "d-b2-1", name: "Azorius Control", player: "b2" },
-    { id: "d-c3-1", name: "Gruul Stompy", player: "c3" },
-    { id: "d-c3-2", name: "Boros Aggro", player: "c3" },
-    { id: "d-c3-3", name: "Simic Ramp", player: "c3" },
-    { id: "d-d4-1", name: "Dimir Mill", player: "d4" },
-    { id: "d-d4-2", name: "Selesnya Tokens", player: "d4" },
-];
+const MOCK_DECKS: Record<UUID, Deck> = {
+    "d-a1-1": { id: "d-a1-1", name: "Mono Red Aggro", player: "a1" },
+    "d-a1-2": { id: "d-a1-2", name: "Golgari Midrange", player: "a1" },
+    "d-b2-1": { id: "d-b2-1", name: "Azorius Control", player: "b2" },
+    "d-c3-1": { id: "d-c3-1", name: "Gruul Stompy", player: "c3" },
+    "d-c3-2": { id: "d-c3-2", name: "Boros Aggro", player: "c3" },
+    "d-c3-3": { id: "d-c3-3", name: "Simic Ramp", player: "c3" },
+    "d-d4-1": { id: "d-d4-1", name: "Dimir Mill", player: "d4" },
+    "d-d4-2": { id: "d-d4-2", name: "Selesnya Tokens", player: "d4" },
+};
 
 export const NewGame = () => {
     const newGameForm = useForm({ schema: GameSelectionSchema });
@@ -64,7 +60,7 @@ export const NewGame = () => {
     const removeItem = (index: number) =>
         remove(newGameForm, { path: ["selectedDecks"], at: index });
 
-    const changeItem = (index: number, selection: DeckSelection) => {
+    const changeItem = (index: number, selection: DeckSelectionIds) => {
         replace(newGameForm, {
             path: ["selectedDecks"],
             at: index,
@@ -80,9 +76,23 @@ export const NewGame = () => {
     const handleSubmit = (values: v.InferOutput<typeof GameSelectionSchema>) =>
         console.log(values);
 
+    const getFormErrors = useCallback(
+        (index: number, fieldName: "playerId" | "deckId") => {
+            return getErrors(newGameForm, {
+                path: ["selectedDecks", index, fieldName],
+            });
+        },
+        [newGameForm],
+    );
+
+    const fieldArrayErrors = getErrors(newGameForm, {
+        path: ["selectedDecks"],
+    });
+
     return (
         <div className="flex flex-col h-screen bg-background">
             <Form of={newGameForm} onSubmit={handleSubmit}>
+                {newGameForm.errors && <div>{newGameForm.errors[0]}</div>}
                 {/* Main content - scrollable */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-6 max-w-screen-xl mx-auto">
@@ -102,11 +112,20 @@ export const NewGame = () => {
                                                 {(field) => (
                                                     <DeckSelector
                                                         index={index}
-                                                        players={MOCK_PLAYERS}
-                                                        decks={MOCK_DECKS}
+                                                        playersById={
+                                                            MOCK_PLAYERS
+                                                        }
+                                                        decksById={MOCK_DECKS}
                                                         onRemove={removeItem}
                                                         onChange={changeItem}
-                                                        value={field.input as DeckSelection | undefined}
+                                                        value={
+                                                            field.input as
+                                                                | DeckSelectionIds
+                                                                | undefined
+                                                        }
+                                                        getFormErrors={
+                                                            getFormErrors
+                                                        }
                                                     />
                                                 )}
                                             </Field>
@@ -128,6 +147,11 @@ export const NewGame = () => {
 
                 {/* Fixed bottom nav - safe area aware */}
                 <div className="border-t bg-background/80 backdrop-blur-sm fixed left-0 right-0 bottom-0">
+                    {fieldArrayErrors && (
+                        <div className="bg-red-100 border border-red-200 text-red-400 rounded p-4 m-4">
+                            {fieldArrayErrors[0]}
+                        </div>
+                    )}
                     <div className="p-4 space-y-2 md:space-y-0 md:flex md:gap-3 max-w-screen-xl mx-auto">
                         <Button
                             className="w-full md:flex-1"
