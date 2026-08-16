@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     DeckSelector,
     type Deck,
@@ -19,6 +20,7 @@ import {
 } from "@formisch/react";
 import * as v from "valibot";
 import { useCallback } from "react";
+import { AlertCircleIcon } from "lucide-react";
 
 // TODO: Hoist schemas and types to NewGame schema.ts file
 const GameSelectionSchema = v.object({
@@ -92,7 +94,6 @@ export const NewGame = () => {
     return (
         <div className="flex flex-col h-screen bg-background">
             <Form of={newGameForm} onSubmit={handleSubmit}>
-                {newGameForm.errors && <div>{newGameForm.errors[0]}</div>}
                 {/* Main content - scrollable */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-6 max-w-screen-xl mx-auto">
@@ -145,13 +146,23 @@ export const NewGame = () => {
                     </div>
                 </div>
 
+                {/* Error alerts - floating above footer */}
+                {(newGameForm.errors?.[0] || fieldArrayErrors?.[0]) && (
+                    <div className="fixed left-0 right-0 bottom-24 pointer-events-none px-4 flex justify-center">
+                        <div className="w-full max-w-screen-xl pointer-events-auto">
+                            <Alert variant="destructive">
+                                <AlertCircleIcon />
+                                <AlertDescription>
+                                    {newGameForm.errors?.[0] ||
+                                        fieldArrayErrors?.[0]}
+                                </AlertDescription>
+                            </Alert>
+                        </div>
+                    </div>
+                )}
+
                 {/* Fixed bottom nav - safe area aware */}
                 <div className="border-t bg-background/80 backdrop-blur-sm fixed left-0 right-0 bottom-0">
-                    {fieldArrayErrors && (
-                        <div className="bg-red-100 border border-red-200 text-red-400 rounded p-4 m-4">
-                            {fieldArrayErrors[0]}
-                        </div>
-                    )}
                     <div className="p-4 space-y-2 md:space-y-0 md:flex md:gap-3 max-w-screen-xl mx-auto">
                         <Button
                             className="w-full md:flex-1"
