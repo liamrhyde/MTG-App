@@ -1,12 +1,16 @@
-import { Router, Route } from "wouter";
+import { Router, Route, Switch } from "wouter";
 import { Homepage } from "./views/Homepage";
 import { NewGame } from "./views/NewGame";
+import { GameView } from "./views/GameView";
 
 function App() {
     return (
         <Router>
-            <Route path="/game/new" component={NewGame} />
-            <Route path="/" component={Homepage} />
+            <Switch>
+                <Route path="/game/new" component={NewGame} />
+                <Route path="/game/:gameId" component={GameView} />
+                <Route path="/" component={Homepage} />
+            </Switch>
         </Router>
     );
 }

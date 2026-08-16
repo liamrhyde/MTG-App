@@ -1,9 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-    DeckSelector,
-    type DeckSelectionIds,
-} from "@/components/DeckSelector";
+import { DeckSelector, type DeckSelectionIds } from "@/components/DeckSelector";
 import type { Deck, Player, UUID } from "./schemas";
 
 import {
@@ -20,6 +17,7 @@ import * as v from "valibot";
 import { useCallback } from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { GameSelectionSchema } from "./schemas";
+import { navigate } from "wouter/use-browser-location";
 
 const MOCK_PLAYERS: Record<UUID, Player> = {
     a1: { id: "a1", name: "Alice" },
@@ -59,8 +57,12 @@ export const NewGame = () => {
             path: ["selectedDecks"],
         });
 
-    const handleSubmit = (values: v.InferOutput<typeof GameSelectionSchema>) =>
+    const handleSubmit = (
+        values: v.InferOutput<typeof GameSelectionSchema>,
+    ) => {
         console.log(values);
+        navigate('/game/abcd')
+    };
 
     const getFormErrors = useCallback(
         (index: number, fieldName: "playerId" | "deckId") => {
