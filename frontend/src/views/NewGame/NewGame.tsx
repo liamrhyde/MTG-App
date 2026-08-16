@@ -2,11 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     DeckSelector,
-    type Deck,
     type DeckSelectionIds,
-    type Player,
-    type UUID,
 } from "@/components/DeckSelector";
+import type { Deck, Player, UUID } from "./schemas";
 
 import {
     Field,
@@ -21,21 +19,7 @@ import {
 import * as v from "valibot";
 import { useCallback } from "react";
 import { AlertCircleIcon } from "lucide-react";
-
-// TODO: Hoist schemas and types to NewGame schema.ts file
-const GameSelectionSchema = v.object({
-    selectedDecks: v.pipe(
-        // TODO: Consider input and output schemas
-        v.array(
-            v.object({
-                playerId: v.pipe(v.string(), v.nonEmpty("Player required")),
-                deckId: v.pipe(v.string(), v.nonEmpty("Deck required")),
-            }),
-        ),
-        v.maxLength(8),
-        v.minLength(2, "Minumum 2 players required"),
-    ),
-});
+import { GameSelectionSchema } from "./schemas";
 
 const MOCK_PLAYERS: Record<UUID, Player> = {
     a1: { id: "a1", name: "Alice" },

@@ -12,19 +12,7 @@ import {
     ComboboxLabel,
     ComboboxSeparator,
 } from "@/components/ui/combobox";
-
-export type UUID = string;
-
-export interface Player {
-    id: UUID;
-    name: string;
-}
-
-export interface Deck {
-    id: UUID;
-    name: string;
-    player: UUID;
-}
+import type { UUID, Player, Deck } from "@/views/NewGame/schemas";
 
 export interface DeckSelectionIds {
     playerId?: UUID;
