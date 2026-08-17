@@ -2,13 +2,7 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { PlayerSector } from "@/views/Game/PlayerSector";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
-
-export interface PlayerGameState {
-    playerId: UUID;
-    deckId: UUID;
-    health: number;
-    counters: Record<string, number>;
-}
+import type { GameState } from "@/views/Game/schemas";
 
 const MOCK_PLAYERS: Record<UUID, Player> = {
     p1: { id: "p1", name: "Alice" },
@@ -24,12 +18,12 @@ const MOCK_DECKS: Record<UUID, Deck> = {
     "d-p4-1": { id: "d-p4-1", name: "Black Discard", player: "p4" },
 };
 
-const MOCK_GAME_PLAYERS: PlayerGameState[] = [
-    { playerId: "p1", deckId: "d-p1-1", health: 40, counters: {} },
-    { playerId: "p2", deckId: "d-p2-1", health: 40, counters: {} },
-    { playerId: "p3", deckId: "d-p3-1", health: 40, counters: {} },
-    { playerId: "p4", deckId: "d-p4-1", health: 40, counters: {} },
-];
+const MOCK_GAME_STATE: GameState = {
+    p1: { deckId: "d-p1-1", health: 40, poison: 0, commander: { p2: 0, p3: 0, p4: 0 } },
+    p2: { deckId: "d-p2-1", health: 40, poison: 0, commander: { p1: 0, p3: 0, p4: 0 } },
+    p3: { deckId: "d-p3-1", health: 40, poison: 0, commander: { p1: 0, p2: 0, p4: 0 } },
+    p4: { deckId: "d-p4-1", health: 40, poison: 0, commander: { p1: 0, p2: 0, p3: 0 } },
+};
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
@@ -41,13 +35,14 @@ export const GameView = () => {
                 Game {gameId}
             </span>
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 sm:gap-3 p-2 sm:p-3">
-                {MOCK_GAME_PLAYERS.map((gp) => (
+                {Object.entries(MOCK_GAME_STATE).map(([playerId, healthState]) => (
                     <PlayerSector
-                        key={gp.playerId}
-                        player={MOCK_PLAYERS[gp.playerId]}
-                        deck={MOCK_DECKS[gp.deckId]}
-                        gameState={gp}
-                        isSelected={selectedPlayerId === gp.playerId}
+                        key={playerId}
+                        playerId={playerId as UUID}
+                        player={MOCK_PLAYERS[playerId]}
+                        deck={MOCK_DECKS[healthState.deckId]}
+                        healthState={healthState}
+                        isSelected={selectedPlayerId === playerId}
                         onSelect={setSelectedPlayerId}
                     />
                 ))}
