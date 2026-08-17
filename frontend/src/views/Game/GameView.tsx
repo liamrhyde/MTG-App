@@ -19,16 +19,39 @@ const MOCK_DECKS: Record<UUID, Deck> = {
 };
 
 const MOCK_GAME_STATE: GameState = {
-    p1: { deckId: "d-p1-1", health: 40, poison: 0, commander: { p2: 0, p3: 0, p4: 0 } },
-    p2: { deckId: "d-p2-1", health: 40, poison: 0, commander: { p1: 0, p3: 0, p4: 0 } },
-    p3: { deckId: "d-p3-1", health: 40, poison: 0, commander: { p1: 0, p2: 0, p4: 0 } },
-    p4: { deckId: "d-p4-1", health: 40, poison: 0, commander: { p1: 0, p2: 0, p3: 0 } },
+    p1: {
+        deckId: "d-p1-1",
+        health: 40,
+        poison: 0,
+        commander: { p2: 0, p3: 0, p4: 0 },
+    },
+    p2: {
+        deckId: "d-p2-1",
+        health: 40,
+        poison: 0,
+        commander: { p1: 0, p3: 0, p4: 0 },
+    },
+    p3: {
+        deckId: "d-p3-1",
+        health: 40,
+        poison: 0,
+        commander: { p1: 0, p2: 0, p4: 0 },
+    },
+    p4: {
+        deckId: "d-p4-1",
+        health: 40,
+        poison: 0,
+        commander: { p1: 0, p2: 0, p3: 0 },
+    },
 };
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
     const [selectedPlayerId, setSelectedPlayerId] = useState<UUID | null>(null);
     const [gameState, setGameState] = useState<GameState>(MOCK_GAME_STATE);
+
+    const handleSelectPlayer = (playerId: string | null) =>
+        setSelectedPlayerId((selection) => selection ?? playerId);
 
     const handleHealthChange = (playerId: UUID, health: number) => {
         setGameState((prev) => ({
@@ -39,6 +62,9 @@ export const GameView = () => {
             },
         }));
     };
+
+    const handleSubmit = () => setSelectedPlayerId(null);
+    const handleCancel = () => setSelectedPlayerId(null);
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
@@ -54,10 +80,12 @@ export const GameView = () => {
                         deck={MOCK_DECKS[healthState.deckId]}
                         healthState={healthState}
                         selectedPlayerId={selectedPlayerId}
-                        onSelect={setSelectedPlayerId}
+                        onSelect={handleSelectPlayer}
                         onHealthChange={(health) =>
                             handleHealthChange(playerId as UUID, health)
                         }
+                        onSubmit={handleSubmit}
+                        onCancel={handleCancel}
                     />
                 ))}
             </div>
