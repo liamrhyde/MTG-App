@@ -1,7 +1,7 @@
 import { Router, Route, Switch } from "wouter";
 import { Homepage } from "./views/Homepage";
 import { NewGame } from "./views/NewGame";
-import { GameView } from "./views/GameView";
+import { GameView } from "./views/Game/GameView";
 
 function App() {
     return (

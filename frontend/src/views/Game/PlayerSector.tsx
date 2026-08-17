@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
-import type { PlayerGameState } from "@/views/GameView";
+import type { PlayerGameState } from "@/views/Game/GameView";
 
 interface PlayerSectorProps {
 	player: Player;
