@@ -28,6 +28,17 @@ const MOCK_GAME_STATE: GameState = {
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
     const [selectedPlayerId, setSelectedPlayerId] = useState<UUID | null>(null);
+    const [gameState, setGameState] = useState<GameState>(MOCK_GAME_STATE);
+
+    const handleHealthChange = (playerId: UUID, health: number) => {
+        setGameState((prev) => ({
+            ...prev,
+            [playerId]: {
+                ...prev[playerId],
+                health,
+            },
+        }));
+    };
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
@@ -35,15 +46,18 @@ export const GameView = () => {
                 Game {gameId}
             </span>
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 sm:gap-3 p-2 sm:p-3">
-                {Object.entries(MOCK_GAME_STATE).map(([playerId, healthState]) => (
+                {Object.entries(gameState).map(([playerId, healthState]) => (
                     <PlayerSector
                         key={playerId}
                         playerId={playerId as UUID}
                         player={MOCK_PLAYERS[playerId]}
                         deck={MOCK_DECKS[healthState.deckId]}
                         healthState={healthState}
-                        isSelected={selectedPlayerId === playerId}
+                        selectedPlayerId={selectedPlayerId}
                         onSelect={setSelectedPlayerId}
+                        onHealthChange={(health) =>
+                            handleHealthChange(playerId as UUID, health)
+                        }
                     />
                 ))}
             </div>
