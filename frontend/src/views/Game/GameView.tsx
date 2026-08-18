@@ -71,7 +71,7 @@ export const GameView = () => {
             <span className="absolute top-2 left-3 z-10 text-xs text-muted-foreground">
                 Game {gameId}
             </span>
-            <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 sm:gap-3 p-2 sm:p-3">
+            <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
                 {Object.entries(gameState).map(([playerId, healthState]) => (
                     <PlayerSector
                         key={playerId}
