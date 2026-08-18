@@ -3,66 +3,60 @@ import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon } from "./ui/input-group";
 
 interface HealthDisplayProps {
+    label?: string;
     value: number;
+    changeValue: number | undefined;
     onChange: (value: number) => void;
     editable?: boolean;
-    min?: number;
-    max?: number;
 }
 
 export const HealthDisplay = ({
+    label,
     value,
+    changeValue,
     onChange,
     editable = false,
-    min = 0,
-    max = 40,
 }: HealthDisplayProps) => {
-    const handleDecrement = () => {
-        const newValue = Math.max(value - 1, min);
-        onChange(newValue);
-    };
-
-    const handleIncrement = () => {
-        const newValue = Math.min(value + 1, max);
-        onChange(newValue);
-    };
-
+    const handleDecrement = () => onChange((changeValue ?? 0) - 1);
+    const handleIncrement = () => onChange((changeValue ?? 0) + 1);
     return (
-        <InputGroup className="flex justify-between">
-            <InputGroupAddon align="inline-start">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleDecrement}
-                    disabled={value <= min}
-                    hidden={!editable}
-                    aria-label="Decrease health"
-                >
-                    <Minus className="size-4" />
-                </Button>
-            </InputGroupAddon>
-            <div className="flex flex-1 justify-center">
-                <p className="relative font-semibold text-md">
-                    {value}
-                    {editable && (
-                        <p className="absolute left-full top-0 ml-1 font-extralight text-sm">
-                            +30
-                        </p>
-                    )}
-                </p>
-            </div>
-            <InputGroupAddon align="inline-end">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleIncrement}
-                    disabled={value >= max}
-                    hidden={!editable}
-                    aria-label="Increase health"
-                >
-                    <Plus className="size-4" />
-                </Button>
-            </InputGroupAddon>
-        </InputGroup>
+        <div className="flex flex-1 gap-2 items-center">
+            {label && <p>{label}</p>}
+            <InputGroup className="flex justify-between">
+                <InputGroupAddon align="inline-start">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDecrement}
+                        hidden={!editable}
+                        aria-label="Decrease health"
+                    >
+                        <Minus className="size-4" />
+                    </Button>
+                </InputGroupAddon>
+                <div className="flex flex-1 justify-center">
+                    <span className="relative flex">
+                        <p className="text-md">{value}</p>
+                        {!!changeValue && (
+                            <p className="absolute left-full top-0 ml-1 font-semibold text-md">
+                                {changeValue && changeValue > 0 && "+"}
+                                {changeValue}
+                            </p>
+                        )}
+                    </span>
+                </div>
+                <InputGroupAddon align="inline-end">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleIncrement}
+                        hidden={!editable}
+                        aria-label="Increase health"
+                    >
+                        <Plus className="size-4" />
+                    </Button>
+                </InputGroupAddon>
+            </InputGroup>
+        </div>
     );
 };

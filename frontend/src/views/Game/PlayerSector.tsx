@@ -3,34 +3,56 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
-import type { PlayerHealthState } from "@/views/Game/schemas";
+import type { PlayerGameState, PlayerHealthChange } from "@/views/Game/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 
 interface PlayerSectorProps {
-    playerId: UUID;
     player: Player;
     deck: Deck;
-    healthState: PlayerHealthState;
+    playerGameState: PlayerGameState;
+    playerHealthChange: PlayerHealthChange | undefined;
     selectedPlayerId: UUID | null;
     onSelect: (playerId: UUID) => void;
-    onHealthChange?: (health: number) => void;
+    onHealthStateChange?: (
+        targetPlayerId: UUID,
+        healthType: keyof PlayerHealthChange,
+        value: number,
+    ) => void;
     onSubmit?: () => void;
     onCancel?: () => void;
 }
 
 export const PlayerSector = ({
-    playerId,
     player,
     deck,
-    healthState,
+    playerGameState,
+    playerHealthChange,
     selectedPlayerId,
     onSelect,
-    onHealthChange,
+    onHealthStateChange,
     onSubmit,
     onCancel,
 }: PlayerSectorProps) => {
+    const playerId = player.id;
     const isSelected = selectedPlayerId === playerId;
+
+    const handleHealthChange = (value: number) =>
+        onHealthStateChange?.(playerId, "health", value);
+
+    const handleCommanderChange = (value: number) => {
+        const delta = value - (playerHealthChange?.commander ?? 0);
+        onHealthStateChange?.(playerId, "commander", value);
+        onHealthStateChange?.(
+            playerId,
+            "health",
+            (playerHealthChange?.health ?? 0) - delta,
+        );
+    };
+
+    const handlePoisonChange = (value: number) =>
+        onHealthStateChange?.(playerId, "poison", value);
 
     return (
         <Card
@@ -79,13 +101,37 @@ export const PlayerSector = ({
                 </div>
             </CardHeader>
             <CardContent className="flex flex-col justify-between grow">
-                <div className="self-end w-full">
+                <HealthDisplay
+                    label="H"
+                    value={playerGameState.health}
+                    changeValue={playerHealthChange?.health}
+                    onChange={handleHealthChange}
+                    editable={!!selectedPlayerId}
+                />
+                {selectedPlayerId ? (
                     <HealthDisplay
-                        value={healthState.health}
-                        onChange={onHealthChange || (() => {})}
+                        label="C"
+                        value={
+                            playerGameState.commander?.[selectedPlayerId] ?? 0
+                        }
+                        changeValue={playerHealthChange?.commander}
+                        onChange={handleCommanderChange}
                         editable={!!selectedPlayerId}
                     />
-                </div>
+                ) : (
+                    <InputGroup className="justify-center">
+                        <InputGroupText>
+                            Commander Health Values Here
+                        </InputGroupText>
+                    </InputGroup>
+                )}
+                <HealthDisplay
+                    label="P"
+                    value={playerGameState.poison}
+                    changeValue={playerHealthChange?.poison}
+                    onChange={handlePoisonChange}
+                    editable={!!selectedPlayerId}
+                />
             </CardContent>
         </Card>
     );

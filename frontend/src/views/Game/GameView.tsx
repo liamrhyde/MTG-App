@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { PlayerSector } from "@/views/Game/PlayerSector";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
-import type { GameState } from "@/views/Game/schemas";
+import type {
+    GameState,
+    GameStateChange,
+    PlayerHealthChange,
+} from "@/views/Game/schemas";
 
 const MOCK_PLAYERS: Record<UUID, Player> = {
     p1: { id: "p1", name: "Alice" },
@@ -48,23 +52,55 @@ const MOCK_GAME_STATE: GameState = {
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
     const [selectedPlayerId, setSelectedPlayerId] = useState<UUID | null>(null);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [gameState, setGameState] = useState<GameState>(MOCK_GAME_STATE);
 
-    const handleSelectPlayer = (playerId: string | null) =>
-        setSelectedPlayerId((selection) => selection ?? playerId);
+    const [gameStateChange, setGameStateChange] =
+        useState<GameStateChange | null>();
 
-    const handleHealthChange = (playerId: UUID, health: number) => {
-        setGameState((prev) => ({
-            ...prev,
-            [playerId]: {
-                ...prev[playerId],
-                health,
-            },
-        }));
+    const handleSelectPlayer = (playerId: string | null) => {
+        if (selectedPlayerId || !playerId) {
+            return;
+        }
+        setSelectedPlayerId((selection) => selection ?? playerId);
+        setGameStateChange({ sourcePlayer: playerId, targets: {} });
     };
 
-    const handleSubmit = () => setSelectedPlayerId(null);
-    const handleCancel = () => setSelectedPlayerId(null);
+    const handleHealthChange = (
+        targetPlayerId: UUID,
+        healthType: keyof PlayerHealthChange,
+        value: number,
+    ) => {
+        setGameStateChange((current) => {
+            if (!current) return null;
+            const targetPlayerData = current.targets?.[targetPlayerId] ?? {
+                health: 0,
+                poison: 0,
+                commander: 0,
+            };
+            return {
+                ...current,
+                targets: {
+                    ...current.targets,
+                    [targetPlayerId]: {
+                        ...targetPlayerData,
+                        [healthType]: value,
+                    },
+                },
+            };
+        });
+    };
+
+    const handleSubmit = () => {
+        setSelectedPlayerId(null);
+        setGameStateChange(null);
+    };
+
+    const handleCancel = () => {
+        setSelectedPlayerId(null);
+        setGameStateChange(null);
+    };
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
@@ -72,17 +108,17 @@ export const GameView = () => {
                 Game {gameId}
             </span>
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
-                {Object.entries(gameState).map(([playerId, healthState]) => (
+                {Object.entries(gameState).map(([playerId, playerState]) => (
                     <PlayerSector
                         key={playerId}
-                        playerId={playerId as UUID}
                         player={MOCK_PLAYERS[playerId]}
-                        deck={MOCK_DECKS[healthState.deckId]}
-                        healthState={healthState}
+                        deck={MOCK_DECKS[playerState.deckId]}
+                        playerGameState={playerState}
                         selectedPlayerId={selectedPlayerId}
                         onSelect={handleSelectPlayer}
-                        onHealthChange={(health) =>
-                            handleHealthChange(playerId as UUID, health)
+                        onHealthStateChange={handleHealthChange}
+                        playerHealthChange={
+                            gameStateChange?.targets?.[playerId]
                         }
                         onSubmit={handleSubmit}
                         onCancel={handleCancel}
