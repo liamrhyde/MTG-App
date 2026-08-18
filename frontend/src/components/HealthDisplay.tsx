@@ -34,7 +34,7 @@ export const HealthDisplay = ({
                     variant="ghost"
                     size="icon"
                     onClick={handleDecrement}
-                    disabled={!editable || value <= min}
+                    disabled={value <= min}
                     hidden={!editable}
                     aria-label="Decrease health"
                 >
@@ -47,9 +47,9 @@ export const HealthDisplay = ({
                     variant="ghost"
                     size="icon"
                     onClick={handleIncrement}
-                    disabled={!editable || value <= min}
+                    disabled={value >= max}
                     hidden={!editable}
-                    aria-label="Decrease health"
+                    aria-label="Increase health"
                 >
                     <Plus className="size-4" />
                 </Button>
