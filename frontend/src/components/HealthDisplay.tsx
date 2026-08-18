@@ -1,10 +1,6 @@
 import { Plus, Minus } from "lucide-react";
-import {
-    ButtonGroup,
-    ButtonGroupAddon,
-    ButtonGroupButton,
-    ButtonGroupText,
-} from "@/components/ui/button-group";
+import { Button } from "@/components/ui/button";
+import { InputGroup, InputGroupAddon } from "./ui/input-group";
 
 interface HealthDisplayProps {
     value: number;
@@ -32,32 +28,32 @@ export const HealthDisplay = ({
     };
 
     return (
-        <ButtonGroup>
-            {editable && (
-                <ButtonGroupAddon align="inline-start">
-                    <ButtonGroupButton
-                        onClick={handleDecrement}
-                        disabled={value <= min}
-                        aria-label="Decrease health"
-                    >
-                        <Minus className="size-4" />
-                    </ButtonGroupButton>
-                </ButtonGroupAddon>
-            )}
-            <ButtonGroupText className="font-semibold text-lg">
-                {value}
-            </ButtonGroupText>
-            {editable && (
-                <ButtonGroupAddon align="inline-end">
-                    <ButtonGroupButton
-                        onClick={handleIncrement}
-                        disabled={value >= max}
-                        aria-label="Increase health"
-                    >
-                        <Plus className="size-4" />
-                    </ButtonGroupButton>
-                </ButtonGroupAddon>
-            )}
-        </ButtonGroup>
+        <InputGroup className="flex justify-between">
+            <InputGroupAddon align="inline-start">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleDecrement}
+                    disabled={!editable || value <= min}
+                    hidden={!editable}
+                    aria-label="Decrease health"
+                >
+                    <Minus className="size-4" />
+                </Button>
+            </InputGroupAddon>
+            <p className="font-semibold text-md">{value}</p>
+            <InputGroupAddon align="inline-end">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleIncrement}
+                    disabled={!editable || value <= min}
+                    hidden={!editable}
+                    aria-label="Decrease health"
+                >
+                    <Plus className="size-4" />
+                </Button>
+            </InputGroupAddon>
+        </InputGroup>
     );
 };
