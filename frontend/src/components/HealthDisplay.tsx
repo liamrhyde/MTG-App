@@ -41,7 +41,16 @@ export const HealthDisplay = ({
                     <Minus className="size-4" />
                 </Button>
             </InputGroupAddon>
-            <p className="font-semibold text-md">{value}</p>
+            <div className="flex flex-1 justify-center">
+                <p className="relative font-semibold text-md">
+                    {value}
+                    {editable && (
+                        <p className="absolute left-full top-0 ml-1 font-extralight text-sm">
+                            +30
+                        </p>
+                    )}
+                </p>
+            </div>
             <InputGroupAddon align="inline-end">
                 <Button
                     variant="ghost"
