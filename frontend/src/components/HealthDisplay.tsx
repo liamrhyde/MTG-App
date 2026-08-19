@@ -1,6 +1,7 @@
 import { Plus, Minus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon } from "./ui/input-group";
+import { cn } from "@/lib/utils";
 
 interface HealthDisplayProps {
     value: number;
@@ -9,6 +10,7 @@ interface HealthDisplayProps {
     editable?: boolean;
     icon?: LucideIcon;
     label?: string;
+    className?: string;
 }
 
 export const HealthDisplay = ({
@@ -18,13 +20,14 @@ export const HealthDisplay = ({
     editable = false,
     icon: Icon,
     label,
+    className,
 }: HealthDisplayProps) => {
     const handleDecrement = () => onChange?.((changeValue ?? 0) - 1);
     const handleIncrement = () => onChange?.((changeValue ?? 0) + 1);
     return (
-        <div className="flex flex-1 gap-2 items-center">
+        <div className={cn("flex flex-2 gap-2 items-center", className)}>
             {Icon && <Icon className="size-4" />}
-            <InputGroup className="flex justify-between">
+            <InputGroup className="flex flex-1 justify-between h-full">
                 <InputGroupAddon align="inline-start">
                     <Button
                         variant="ghost"
