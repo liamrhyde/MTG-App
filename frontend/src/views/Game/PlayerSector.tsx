@@ -5,6 +5,7 @@ import { Crown, Heart, Radiation, X } from "lucide-react";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
 import type { PlayerGameState, PlayerHealthChange } from "@/views/Game/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
+import { CommanderDamageGrid } from "@/components/CommanderDamageGrid";
 import { ButtonGroup } from "@/components/ui/button-group";
 
 interface PlayerSectorProps {
@@ -118,11 +119,9 @@ export const PlayerSector = ({
                         editable={!!selectedPlayerId}
                     />
                 ) : (
-                    <InputGroup className="justify-center">
-                        <InputGroupText>
-                            Commander Health Values Here
-                        </InputGroupText>
-                    </InputGroup>
+                    <CommanderDamageGrid
+                        commanderDamage={playerGameState.commander}
+                    />
                 )}
                 <HealthDisplay
                     icon={Radiation}
