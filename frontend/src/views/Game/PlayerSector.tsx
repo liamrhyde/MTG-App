@@ -1,12 +1,11 @@
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { Crown, Heart, Radiation, X } from "lucide-react";
 import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
 import type { PlayerGameState, PlayerHealthChange } from "@/views/Game/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
 import { ButtonGroup } from "@/components/ui/button-group";
-import { InputGroup, InputGroupText } from "@/components/ui/input-group";
 
 interface PlayerSectorProps {
     player: Player;
@@ -102,7 +101,7 @@ export const PlayerSector = ({
             </CardHeader>
             <CardContent className="flex flex-col justify-between grow">
                 <HealthDisplay
-                    label="H"
+                    icon={Heart}
                     value={playerGameState.health}
                     changeValue={playerHealthChange?.health}
                     onChange={handleHealthChange}
@@ -110,7 +109,7 @@ export const PlayerSector = ({
                 />
                 {selectedPlayerId ? (
                     <HealthDisplay
-                        label="C"
+                        icon={Crown}
                         value={
                             playerGameState.commander?.[selectedPlayerId] ?? 0
                         }
@@ -126,7 +125,7 @@ export const PlayerSector = ({
                     </InputGroup>
                 )}
                 <HealthDisplay
-                    label="P"
+                    icon={Radiation}
                     value={playerGameState.poison}
                     changeValue={playerHealthChange?.poison}
                     onChange={handlePoisonChange}

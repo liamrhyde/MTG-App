@@ -1,27 +1,29 @@
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon } from "./ui/input-group";
 
 interface HealthDisplayProps {
-    label?: string;
     value: number;
-    changeValue: number | undefined;
-    onChange: (value: number) => void;
+    changeValue?: number;
+    onChange?: (value: number) => void;
     editable?: boolean;
+    icon?: LucideIcon;
+    label?: string;
 }
 
 export const HealthDisplay = ({
-    label,
     value,
     changeValue,
     onChange,
     editable = false,
+    icon: Icon,
+    label,
 }: HealthDisplayProps) => {
-    const handleDecrement = () => onChange((changeValue ?? 0) - 1);
-    const handleIncrement = () => onChange((changeValue ?? 0) + 1);
+    const handleDecrement = () => onChange?.((changeValue ?? 0) - 1);
+    const handleIncrement = () => onChange?.((changeValue ?? 0) + 1);
     return (
         <div className="flex flex-1 gap-2 items-center">
-            {label && <p>{label}</p>}
+            {Icon && <Icon className="size-4" />}
             <InputGroup className="flex justify-between">
                 <InputGroupAddon align="inline-start">
                     <Button
@@ -36,6 +38,11 @@ export const HealthDisplay = ({
                 </InputGroupAddon>
                 <div className="flex flex-1 justify-center">
                     <span className="relative flex">
+                        {label && (
+                            <p className="absolute right-full top-0 mr-1 text-sm font-extralight text-ellipsis whitespace-nowrap">
+                                {label}
+                            </p>
+                        )}
                         <p className="text-md">{value}</p>
                         {!!changeValue && (
                             <p className="absolute left-full top-0 ml-1 font-semibold text-md">
