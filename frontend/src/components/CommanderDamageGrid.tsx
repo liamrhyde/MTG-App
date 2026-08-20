@@ -10,7 +10,7 @@ export const CommanderDamageGrid = ({
     commanderDamage,
 }: CommanderDamageGridProps) => {
     return (
-        <div className="flex flex-2 lg:flex-[3] gap-2 items-center">
+        <div className="flex flex-3 gap-2 items-center">
             <Crown className="h-4 w-4" />
             <div className="flex flex-1 flex-wrap gap-1 h-full">
                 {/* TODO: Consider explicitly handling all players vs relying on commanderDamage keys */}

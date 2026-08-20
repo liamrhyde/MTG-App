@@ -25,18 +25,18 @@ export const HealthDisplay = ({
     const handleDecrement = () => onChange?.((changeValue ?? 0) - 1);
     const handleIncrement = () => onChange?.((changeValue ?? 0) + 1);
     return (
-        <div className={cn("flex flex-2 gap-2 items-center", className)}>
+        <div className={cn("flex flex-[3] gap-2 items-center", className)}>
             {Icon && <Icon className="size-4" />}
             <InputGroup className="flex flex-1 justify-between h-full">
                 <InputGroupAddon align="inline-start">
                     <Button
                         variant="ghost"
-                        size="icon"
                         onClick={handleDecrement}
+                        className="h-full aspect-square p-0"
                         hidden={!editable}
                         aria-label="Decrease health"
                     >
-                        <Minus className="size-4" />
+                        <Minus className="size-full max-h-4 max-w-4" />
                     </Button>
                 </InputGroupAddon>
                 <div className="flex flex-1 justify-center">
@@ -58,12 +58,12 @@ export const HealthDisplay = ({
                 <InputGroupAddon align="inline-end">
                     <Button
                         variant="ghost"
-                        size="icon"
                         onClick={handleIncrement}
+                        className="h-full aspect-square p-0"
                         hidden={!editable}
                         aria-label="Increase health"
                     >
-                        <Plus className="size-4" />
+                        <Plus className="size-full max-h-4 max-w-4" />
                     </Button>
                 </InputGroupAddon>
             </InputGroup>

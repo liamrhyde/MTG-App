@@ -100,7 +100,7 @@ export const PlayerSector = ({
                     )}
                 </div>
             </CardHeader>
-            <CardContent className="flex flex-col gap-1 justify-between grow">
+            <CardContent className="flex flex-col gap-1 lg:gap-3 justify-between grow">
                 <HealthDisplay
                     icon={Heart}
                     value={playerGameState.health}
@@ -129,7 +129,7 @@ export const PlayerSector = ({
                     changeValue={playerHealthChange?.poison}
                     onChange={handlePoisonChange}
                     editable={!!selectedPlayerId}
-                    className="flex-1"
+                    className="flex-[2]"
                 />
             </CardContent>
         </Card>
