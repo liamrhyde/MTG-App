@@ -16,6 +16,7 @@ export const CommanderDamageGrid = ({
                 {/* TODO: Consider explicitly handling all players vs relying on commanderDamage keys */}
                 {Object.entries(commanderDamage).map(([opponentId, damage]) => (
                     <HealthDisplay
+                        key={opponentId}
                         editable={false}
                         value={damage}
                         label={opponentId}
