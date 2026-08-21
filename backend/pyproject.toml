@@ -1,0 +1,18 @@
+[project]
+authors = [
+    { name = "Liam Hyde", email = "liamrhyde@gmail.com" },
+    { name = "Paskal W", email = "paskal.wolski@gmail.com" },
+]
+name = "backend"
+version = "3.13.15"
+description = "API for tracking Magic the Gathering deck Elo, damage, eliminations and game history."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.141.1"]
+
+[project.scripts]
+backend = "backend:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
