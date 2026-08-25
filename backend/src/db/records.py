@@ -1,7 +1,10 @@
 from sqlalchemy import JSON, Column
 from sqlmodel import Relationship, SQLModel, Field
 
-from backend.models import GameStatus, PlayerHealth
+from db.models import GameStatus, PlayerHealth
+
+
+__all__ = ["Player", "Deck", "Game", "DeckGames"]
 
 
 class Player(SQLModel, table=True):

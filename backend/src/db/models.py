@@ -2,6 +2,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+__all__ = ["GameStatus", "PlayerHealth"]
+
 
 class GameStatus(str, Enum):
     ACTIVE = "active"
