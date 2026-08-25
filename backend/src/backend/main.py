@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+from .repository import RepositoryDep
 from fastapi import FastAPI
 from db import init_db
 
@@ -13,6 +14,6 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.get("/")
-def root():
-    return "Hello MTG Tracker"
+@app.get("/player/{player_id}")
+def root(repository: RepositoryDep, player_id: int):
+    return repository.get_player(player_id)
