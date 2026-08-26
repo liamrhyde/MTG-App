@@ -49,4 +49,58 @@ This will be implemented with the first 'write' method of Repository
 
 ## Testing
 
-TODO.
+Two types of test, split by directory:
+
+- `tests/unit/` — tightly focused on a single unit of functionality. One
+  `Test<Subject>` class per topic, with explicit test methods for each
+  distinct behaviour.
+- `tests/integration/` — focused on functionality, not on any particular
+  domain shape. Stays context-agnostic: no dependency on app models (e.g.
+  `Player`) or realistic data, since it's exercising plumbing (DB session,
+  dependency wiring) rather than business logic.
+
+Every test should read as three explicit stages — Set, Gather, Assert:
+
+```python
+def test_returns_existing_player(self, session, repository):
+    # Set
+    player = Player(name="Alice")
+    session.add(player)
+    session.commit()
+
+    # Gather
+    result = repository.get_player(player.id)
+
+    # Assert
+    assert result is not None
+    assert result.name == "Alice"
+```
+
+A test that interleaves these stages (asserting mid-setup, gathering
+mid-assert, etc.) is usually testing more than one unit — treat that as a
+signal to split it.
+
+Exception: an `assert` needed purely to narrow a type for the type checker
+(e.g. `assert result is not None` before accessing an attribute the checker
+sees as `Optional`) is acceptable inside Set or Gather. Mark it explicitly
+with a `# narrows type` comment so it reads as plumbing, not a real
+assertion stage.
+
+### Running
+
+```
+pytest
+```
+
+Run one type only:
+
+```
+pytest tests/unit
+pytest tests/integration
+```
+
+Run a single file, class, or test:
+
+```
+pytest tests/unit/test_repository.py::TestGetPlayer::test_returns_existing_player
+```
