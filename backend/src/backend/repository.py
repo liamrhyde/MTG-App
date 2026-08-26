@@ -14,6 +14,9 @@ class Repository:
     def get_player(self, player_id: int):
         return self.session.get(Player, player_id)
 
+    def commit(self):
+        self.session.commit()
+
 
 def get_repository(session: SessionDep):
     yield Repository(session)
