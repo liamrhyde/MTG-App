@@ -104,3 +104,21 @@ Run a single file, class, or test:
 ```
 pytest tests/unit/test_repository.py::TestGetPlayer::test_returns_existing_player
 ```
+
+### Pre-commit
+
+`.pre-commit-config.yaml` (repo root) runs the suite on git actions:
+
+- `pre-commit` — `tests/unit`
+- `pre-push` — `tests/integration`
+
+
+
+Install the hooks once per clone:
+
+```
+pip install pre-commit   # or: uv add --dev pre-commit
+pre-commit install --hook-type pre-commit --hook-type pre-push
+```
+
+Skip for one commit with `git commit --no-verify`.
