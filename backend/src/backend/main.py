@@ -15,5 +15,10 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/player/{player_id}")
-def root(repository: RepositoryDep, player_id: int):
+def get_player(repository: RepositoryDep, player_id: int):
     return repository.get_player(player_id)
+
+
+@app.get("/players")
+def get_players(repository: RepositoryDep):
+    return repository.get_players()
