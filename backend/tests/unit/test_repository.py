@@ -1,6 +1,7 @@
 from sqlmodel import Session
 from backend.repository import Repository, get_repository
-from db.records import Deck, Player
+from db.models import GameStatus, PlayerHealth
+from db.records import Deck, Game, Player
 
 
 class TestGetPlayer:
@@ -88,4 +89,44 @@ class TestGetDecks:
 
     def test_returns_empty_deck_list(self, repository: Repository):
         result = repository.get_decks()
+        assert len(result) == 0
+
+
+class TestGetGame:
+    def test_returns_existing_game(self, session: Session, repository: Repository):
+        # TODO: Improve Game fixture
+        game = Game()
+
+        session.add(game)
+        session.commit()
+        session.refresh(game)
+
+        assert game.id is not None
+        result = repository.get_game(game.id)
+
+        assert result is not None
+        assert result.id == game.id
+        assert result.status == GameStatus.ACTIVE
+
+    def test_returns_none_for_missing_id(self, repository: Repository):
+        assert repository.get_game(999) is None
+
+
+class TestGetGames:
+    def test_returns_all_games(self, session: Session, repository: Repository):
+        game_1 = Game(player_count=4)
+        game_2 = Game(player_count=2, status=GameStatus.COMPLETED)
+        session.add(game_1)
+        session.add(game_2)
+        session.commit()
+
+        result = repository.get_games()
+        assert result is not None
+        assert len(result) == 2
+        for g in [game_1, game_2]:
+            assert g in result
+            assert g.id is not None
+
+    def test_returns_empty_game_list(self, repository: Repository):
+        result = repository.get_games()
         assert len(result) == 0
