@@ -32,3 +32,13 @@ def get_deck(repository: RepositoryDep, deck_id: int):
 @app.get("/decks")
 def get_decks(repository: RepositoryDep):
     return repository.get_decks()
+
+
+@app.get("/game/{game_id}")
+def get_game(repository: RepositoryDep, game_id: int):
+    return repository.get_game(game_id)
+
+
+@app.get("/games")
+def get_games(repository: RepositoryDep):
+    return repository.get_games()

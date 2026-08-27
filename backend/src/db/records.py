@@ -22,7 +22,7 @@ class Deck(SQLModel, table=True):
 class Game(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     status: GameStatus = Field(default=GameStatus.ACTIVE, index=True)
-    player_count: int | None
+    player_count: int | None = Field(default=None)
 
     state: dict[str, PlayerHealth] = Field(default_factory=dict, sa_column=Column(JSON))
 
