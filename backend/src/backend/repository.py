@@ -21,6 +21,12 @@ class Repository:
     def get_players(self):
         return self.session.exec(select(Player)).all()
 
+    def get_deck(self, deck_id: int):
+        return self.session.get(Deck, deck_id)
+
+    def get_decks(self):
+        return self.session.exec(select(Deck)).all()
+
 
 def get_repository(session: SessionDep):
     yield Repository(session)
