@@ -22,3 +22,13 @@ def get_player(repository: RepositoryDep, player_id: int):
 @app.get("/players")
 def get_players(repository: RepositoryDep):
     return repository.get_players()
+
+
+@app.get("/deck/{deck_id}")
+def get_deck(repository: RepositoryDep, deck_id: int):
+    return repository.get_deck(deck_id)
+
+
+@app.get("/decks")
+def get_decks(repository: RepositoryDep):
+    return repository.get_decks()
