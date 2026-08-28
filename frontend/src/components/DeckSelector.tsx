@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 import {
     Combobox,
@@ -13,6 +13,8 @@ import {
     ComboboxSeparator,
 } from "@/components/ui/combobox";
 import type { UUID, Player, Deck } from "@/views/NewGame/schemas";
+import { Button } from "./ui/button";
+import { useState } from "react";
 
 export interface DeckSelectionIds {
     playerId?: UUID;
@@ -58,6 +60,9 @@ export const DeckSelector = ({
         ? decks.filter((d) => d.player !== selectedPlayer.id)
         : [];
 
+    const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
+    const [isDeckSelectorOpen, setDeckSelectorOpen] = useState(false);
+
     const availableDecks = [
         {
             value: "Your Decks",
@@ -66,22 +71,20 @@ export const DeckSelector = ({
         { value: "Other Player Decks", items: otherDecks },
     ];
 
-    const handlePlayerChange = (playerId: string | null) => {
+    const handlePlayerChange = (playerId: string | null) =>
         onChange(index, { playerId: playerId ?? undefined, deckId: undefined });
-    };
 
-    const handleDeckChange = (deckId: string | null) => {
+    const handleDeckChange = (deckId: string | null) =>
         onChange(index, {
             playerId: selectedPlayer?.id,
             deckId: deckId ?? undefined,
         });
-    };
-
     return (
         <div className="relative rounded-lg border border-border bg-muted/30 p-6">
             {/* Remove button - top right corner */}
             {onRemove && (
                 <button
+                    type="button"
                     onClick={() => onRemove(index)}
                     className="absolute top-3 right-3 p-1.5 hover:bg-muted rounded-md transition-colors"
                     aria-label="Remove player"
@@ -101,6 +104,9 @@ export const DeckSelector = ({
                         value={selectedPlayer?.id ?? ""}
                         onValueChange={handlePlayerChange}
                         items={players}
+                        autoHighlight
+                        open={isPlayerSelectorOpen}
+                        onOpenChange={setPlayerSelectorOpen}
                     >
                         <ComboboxInput
                             showClear={!!selectedPlayer}
@@ -110,15 +116,28 @@ export const DeckSelector = ({
                         <ComboboxContent>
                             <ComboboxEmpty>No players found.</ComboboxEmpty>
                             <ComboboxList>
-                                {(player) => (
-                                    <ComboboxItem
-                                        key={player.id}
-                                        value={player.id}
-                                    >
-                                        {player.name}
-                                    </ComboboxItem>
-                                )}
+                                <ComboboxCollection>
+                                    {(player: Player) => (
+                                        <ComboboxItem
+                                            key={player.id}
+                                            value={player.id}
+                                        >
+                                            {player.name}
+                                        </ComboboxItem>
+                                    )}
+                                </ComboboxCollection>
                             </ComboboxList>
+                            <ComboboxSeparator />
+                            <Button
+                                className="flex w-full justify-start"
+                                onClick={() => {
+                                    console.log("Handle add player");
+                                }}
+                                variant="ghost"
+                            >
+                                <Plus />
+                                Add new Player
+                            </Button>
                         </ComboboxContent>
                     </Combobox>
                     {playerErrors && (
@@ -134,10 +153,13 @@ export const DeckSelector = ({
                         Deck
                     </label>
                     <Combobox
-                        value={selectedDeck?.name ?? ""}
+                        value={selectedDeck?.id ?? ""}
                         onValueChange={handleDeckChange}
                         disabled={!selectedPlayer}
                         items={availableDecks}
+                        autoHighlight
+                        open={isDeckSelectorOpen}
+                        onOpenChange={setDeckSelectorOpen}
                     >
                         <ComboboxInput
                             showClear={!!selectedDeck}
@@ -146,6 +168,7 @@ export const DeckSelector = ({
                                     ? "Select a player first"
                                     : "Select a deck"
                             }
+                            value={selectedDeck?.name}
                             disabled={!selectedPlayer}
                         />
                         {/* TODO: Render custom Deck tile with more deck info */}
@@ -161,7 +184,7 @@ export const DeckSelector = ({
                                             {group.value}
                                         </ComboboxLabel>
                                         <ComboboxCollection>
-                                            {(deck) => (
+                                            {(deck: Deck) => (
                                                 <ComboboxItem
                                                     key={deck.id}
                                                     value={deck.id}
@@ -177,6 +200,17 @@ export const DeckSelector = ({
                                 )}
                                 {/* TODO: Consider direct 'add deck' action */}
                             </ComboboxList>
+                            <ComboboxSeparator />
+                            <Button
+                                className="flex w-full justify-start"
+                                onClick={() => {
+                                    console.log("Handle add deck");
+                                }}
+                                variant="ghost"
+                            >
+                                <Plus />
+                                Add new Deck
+                            </Button>
                         </ComboboxContent>
                     </Combobox>
                     {deckErrors && (

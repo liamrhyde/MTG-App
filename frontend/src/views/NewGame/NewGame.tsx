@@ -43,25 +43,24 @@ export const NewGame = () => {
 
     const removeItem = (index: number) =>
         remove(newGameForm, { path: ["selectedDecks"], at: index });
-
-    const changeItem = (index: number, selection: DeckSelectionIds) => {
+    const changeItem = (index: number, selection: DeckSelectionIds) =>
         replace(newGameForm, {
             path: ["selectedDecks"],
             at: index,
             initialInput: selection,
         });
-    };
 
-    const addSelection = () =>
+    const addEmptyItem = () =>
         insert(newGameForm, {
             path: ["selectedDecks"],
+            initialInput: {},
         });
 
     const handleSubmit = (
         values: v.InferOutput<typeof GameSelectionSchema>,
     ) => {
         console.log(values);
-        navigate('/game/abcd')
+        navigate("/game/abcd");
     };
 
     const getFormErrors = useCallback(
@@ -120,7 +119,7 @@ export const NewGame = () => {
                                     </div>
                                     {/* Add Player Button */}
                                     <Button
-                                        onClick={addSelection}
+                                        onClick={addEmptyItem}
                                         variant="outline"
                                         disabled={fieldArray.items.length >= 8}
                                     >
