@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/combobox";
 import type { UUID, Player, Deck } from "@/views/NewGame/schemas";
 import { Button } from "./ui/button";
+import { PlayerCreationDialog } from "./PlayerCreationDialog";
 import { useState } from "react";
 
 export interface DeckSelectionIds {
@@ -62,6 +63,7 @@ export const DeckSelector = ({
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
     const [isDeckSelectorOpen, setDeckSelectorOpen] = useState(false);
+    const [isPlayerCreationOpen, setPlayerCreationOpen] = useState(false);
 
     const availableDecks = [
         {
@@ -131,7 +133,8 @@ export const DeckSelector = ({
                             <Button
                                 className="flex w-full justify-start"
                                 onClick={() => {
-                                    console.log("Handle add player");
+                                    setPlayerSelectorOpen(false);
+                                    setPlayerCreationOpen(true);
                                 }}
                                 variant="ghost"
                             >
@@ -198,7 +201,6 @@ export const DeckSelector = ({
                                         )}
                                     </ComboboxGroup>
                                 )}
-                                {/* TODO: Consider direct 'add deck' action */}
                             </ComboboxList>
                             <ComboboxSeparator />
                             <Button
@@ -227,6 +229,11 @@ export const DeckSelector = ({
                     Deck stats coming soon
                 </p>
             </div>
+
+            <PlayerCreationDialog
+                open={isPlayerCreationOpen}
+                onOpenChange={setPlayerCreationOpen}
+            />
         </div>
     );
 };
