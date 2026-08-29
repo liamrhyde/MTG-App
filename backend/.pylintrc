@@ -1,0 +1,6 @@
+[MESSAGES CONTROL]
+
+disable=C0114,  ; Module docstrings 
+        C0115   ; Function docstrings
+
+disable=W0115,  ; FIXME

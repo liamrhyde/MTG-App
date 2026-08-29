@@ -1,0 +1,21 @@
+# Hooks run from repo root; backend tests live in backend/, so each hook
+# cd's in first. pytest is resolved from $VIRTUAL_ENV if a venv is active,
+# else from backend/.venv — so GUI git clients (VSCode, etc.) that don't
+# inherit the terminal's activated venv still work.
+repos:
+  - repo: local
+    hooks:
+      - id: pytest-unit
+        name: pytest (unit)
+        entry: bash -c 'cd backend && "${VIRTUAL_ENV:-$PWD/.venv}/bin/pytest" tests/unit -q'
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: pytest-integration
+        name: pytest (integration)
+        entry: bash -c 'cd backend && "${VIRTUAL_ENV:-$PWD/.venv}/bin/pytest" tests/integration -q'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
