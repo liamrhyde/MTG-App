@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/combobox";
 import type { UUID, Player, Deck } from "@/views/NewGame/schemas";
 import { Button } from "./ui/button";
-import { PlayerCreationDialog } from "./PlayerCreationDialog";
 import { useState } from "react";
+import { PlayerDeckCreationDialog } from "./PlayerDeckCreationDialog/PlayerDeckCreationDialog";
 
 export interface DeckSelectionIds {
     playerId?: UUID;
@@ -63,7 +63,7 @@ export const DeckSelector = ({
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
     const [isDeckSelectorOpen, setDeckSelectorOpen] = useState(false);
-    const [isPlayerCreationOpen, setPlayerCreationOpen] = useState(false);
+    const [isCreationOpen, setCreationOpen] = useState(false);
 
     const availableDecks = [
         {
@@ -134,7 +134,7 @@ export const DeckSelector = ({
                                 className="flex w-full justify-start"
                                 onClick={() => {
                                     setPlayerSelectorOpen(false);
-                                    setPlayerCreationOpen(true);
+                                    setCreationOpen(true);
                                 }}
                                 variant="ghost"
                             >
@@ -206,7 +206,8 @@ export const DeckSelector = ({
                             <Button
                                 className="flex w-full justify-start"
                                 onClick={() => {
-                                    console.log("Handle add deck");
+                                    setDeckSelectorOpen(false);
+                                    setCreationOpen(true);
                                 }}
                                 variant="ghost"
                             >
@@ -230,10 +231,14 @@ export const DeckSelector = ({
                 </p>
             </div>
 
-            <PlayerCreationDialog
-                open={isPlayerCreationOpen}
-                onOpenChange={setPlayerCreationOpen}
-            />
+            {isCreationOpen && (
+                <PlayerDeckCreationDialog
+                    key={`player-deck-creator-${index}`}
+                    isOpen={isCreationOpen}
+                    onOpenChange={setCreationOpen}
+                    player={selectedPlayer}
+                />
+            )}
         </div>
     );
 };

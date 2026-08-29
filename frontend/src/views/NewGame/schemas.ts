@@ -17,6 +17,10 @@ export const PlayerCreationSchema = v.object({
     name: v.pipe(v.string(), v.trim(), v.nonEmpty("Name required")),
 });
 
+export const DeckCreationSchema = v.object({
+    name: v.pipe(v.string(), v.trim(), v.nonEmpty("Deck Name required")),
+});
+
 export const GameSelectionSchema = v.object({
     selectedDecks: v.pipe(
         v.array(
