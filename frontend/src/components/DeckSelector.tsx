@@ -26,7 +26,7 @@ interface DeckSelectorProps {
     value: DeckSelectionIds | undefined;
     onChange: (index: number, value: DeckSelectionIds) => void;
     playersById?: Record<UUID, Player>;
-    decksById: Record<UUID, Deck>;
+    decksById?: Record<UUID, Deck>;
     onRemove?: (index: number) => void;
     index: number;
     getFormErrors: (
@@ -47,18 +47,18 @@ export const DeckSelector = ({
     const selectedPlayer = value?.playerId
         ? playersById?.[value.playerId]
         : undefined;
-    const selectedDeck = value?.deckId ? decksById[value.deckId] : undefined;
+    const selectedDeck = value?.deckId ? decksById?.[value.deckId] : undefined;
     const players = Object.values(playersById ?? {});
-    const decks = Object.values(decksById);
+    const decks = Object.values(decksById ?? {});
 
     const playerErrors = getFormErrors(index, "playerId");
     const deckErrors = getFormErrors(index, "deckId");
 
     const playerDecks = selectedPlayer
-        ? decks.filter((d) => d.player === selectedPlayer.id)
+        ? decks.filter((d) => d.player_id === selectedPlayer.id)
         : [];
     const otherDecks = selectedPlayer
-        ? decks.filter((d) => d.player !== selectedPlayer.id)
+        ? decks.filter((d) => d.player_id !== selectedPlayer.id)
         : [];
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
@@ -238,6 +238,7 @@ export const DeckSelector = ({
                     onOpenChange={setCreationOpen}
                     player={selectedPlayer}
                     onPlayerCreated={handlePlayerChange}
+                    onDeckCreated={handleDeckChange}
                 />
             )}
         </div>

@@ -18,6 +18,7 @@ import {
 import type { Deck, Player } from "@/views/NewGame/schemas";
 import { useState } from "react";
 import { useCreatePlayer } from "@/hooks/usePlayers";
+import { useCreateDeck } from "@/hooks/useDecks";
 import { Spinner } from "../ui/spinner";
 
 type Step =
@@ -31,25 +32,22 @@ interface PlayerDeckCreationDialogProps {
     onOpenChange: (open: boolean) => void;
     player?: Player;
     onPlayerCreated?: (playerId: string) => void;
+    onDeckCreated?: (deckId: string) => void;
 }
-
-const MOCK_DECK: Deck = {
-    id: "1",
-    name: "Deck One",
-    player: "1",
-} as const;
 
 export const PlayerDeckCreationDialog = ({
     isOpen,
     onOpenChange,
     player,
     onPlayerCreated,
+    onDeckCreated,
 }: PlayerDeckCreationDialogProps) => {
     const [currentStep, setCurrentStep] = useState<Step>(() =>
         player ? { step: "deck-form", player } : { step: "player-form" },
     );
 
-    const { createPlayer, isPending } = useCreatePlayer();
+    const { createPlayer, isPending: isPendingPlayer } = useCreatePlayer();
+    const { createDeck, isPending: isPendingDeck } = useCreateDeck();
 
     const playerForm = useForm({ schema: PlayerCreationSchema });
     const deckForm = useForm({ schema: DeckCreationSchema });
@@ -63,19 +61,20 @@ export const PlayerDeckCreationDialog = ({
         });
     };
 
-    const handleDeckSubmit = (
+    const handleDeckSubmit = async (
         values: v.InferOutput<typeof DeckCreationSchema>,
     ) => {
-        console.log("Create Deck", values);
         if (currentStep.step !== "deck-form") {
             // TODO: Raise an error
             return;
         }
-        setCurrentStep({
-            step: "deck-created",
-            player: currentStep.player,
-            deck: MOCK_DECK,
-        });
+        const player = currentStep.player;
+        await createDeck({ name: values.name, player_id: player.id }).then(
+            (deck) => {
+                onDeckCreated?.(deck.id);
+                setCurrentStep({ step: "deck-created", player, deck });
+            },
+        );
     };
 
     return (
@@ -128,8 +127,11 @@ export const PlayerDeckCreationDialog = ({
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit" disabled={isPending}>
-                                    {isPending && (
+                                <Button
+                                    type="submit"
+                                    disabled={isPendingPlayer}
+                                >
+                                    {isPendingPlayer && (
                                         <Spinner data-icon="inline-start" />
                                     )}
                                     Create Player
@@ -214,7 +216,12 @@ export const PlayerDeckCreationDialog = ({
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit">Create Deck</Button>
+                                <Button type="submit" disabled={isPendingDeck}>
+                                    {isPendingDeck && (
+                                        <Spinner data-icon="inline-start" />
+                                    )}
+                                    Create Deck
+                                </Button>
                             </DialogFooter>
                         </Form>
                     )}

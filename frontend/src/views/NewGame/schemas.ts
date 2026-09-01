@@ -10,7 +10,7 @@ export interface Player {
 export interface Deck {
     id: UUID;
     name: string;
-    player: UUID;
+    player_id: UUID;
 }
 
 export const PlayerCreationSchema = v.object({

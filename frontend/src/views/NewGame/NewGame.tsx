@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DeckSelector, type DeckSelectionIds } from "@/components/DeckSelector";
-import type { Deck, UUID } from "./schemas";
 
 import {
     Field,
@@ -19,20 +18,11 @@ import { AlertCircleIcon } from "lucide-react";
 import { GameSelectionSchema } from "./schemas";
 import { navigate } from "wouter/use-browser-location";
 import { usePlayers } from "@/hooks/usePlayers";
-
-const MOCK_DECKS: Record<UUID, Deck> = {
-    "d-a1-1": { id: "d-a1-1", name: "Mono Red Aggro", player: "a1" },
-    "d-a1-2": { id: "d-a1-2", name: "Golgari Midrange", player: "a1" },
-    "d-b2-1": { id: "d-b2-1", name: "Azorius Control", player: "b2" },
-    "d-c3-1": { id: "d-c3-1", name: "Gruul Stompy", player: "c3" },
-    "d-c3-2": { id: "d-c3-2", name: "Boros Aggro", player: "c3" },
-    "d-c3-3": { id: "d-c3-3", name: "Simic Ramp", player: "c3" },
-    "d-d4-1": { id: "d-d4-1", name: "Dimir Mill", player: "d4" },
-    "d-d4-2": { id: "d-d4-2", name: "Selesnya Tokens", player: "d4" },
-};
+import { useDecks } from "@/hooks/useDecks";
 
 export const NewGame = () => {
     const { players } = usePlayers();
+    const { decks } = useDecks();
     const newGameForm = useForm({ schema: GameSelectionSchema });
 
     const removeItem = (index: number) =>
@@ -93,7 +83,7 @@ export const NewGame = () => {
                                                     <DeckSelector
                                                         index={index}
                                                         playersById={players}
-                                                        decksById={MOCK_DECKS}
+                                                        decksById={decks}
                                                         onRemove={removeItem}
                                                         onChange={changeItem}
                                                         value={

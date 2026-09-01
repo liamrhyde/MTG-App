@@ -30,3 +30,28 @@ export const createPlayer = async (input: CreatePlayer): Promise<Player> => {
     });
     return json<Player>(res);
 };
+
+export interface Deck {
+    id: string;
+    name: string;
+    player_id: string;
+}
+
+export interface CreateDeck {
+    name: string;
+    player_id: string;
+}
+
+export const getDecks = async (): Promise<Record<string, Deck>> => {
+    const res = await fetch(`${BASE_URL}/decks`);
+    return json<Record<string, Deck>>(res);
+};
+
+export const createDeck = async (input: CreateDeck): Promise<Deck> => {
+    const res = await fetch(`${BASE_URL}/deck`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+    });
+    return json<Deck>(res);
+};
