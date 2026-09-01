@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from .repository import RepositoryDep
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from db import init_db
 
 
@@ -12,6 +13,13 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/player/{player_id}")
