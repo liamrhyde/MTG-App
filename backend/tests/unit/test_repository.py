@@ -56,6 +56,28 @@ class TestCreatePlayer:
         assert raw_result.name == "Alfred"
 
 
+class TestCreateDeck:
+    def test_create_deck(self, repository: Repository, session: Session):
+        player = Player(name="Alfred")
+        session.add(player)
+        session.commit()
+        session.refresh(player)
+        assert player.id is not None
+
+        deck = Deck(name="Mono Red", player_id=player.id)
+
+        response = repository.create_deck(deck)
+
+        assert response.id is not None
+        assert response.name == "Mono Red"
+        assert response.player_id == player.id
+
+        raw_result = session.get(Deck, response.id)
+        assert raw_result
+        assert raw_result.name == "Mono Red"
+        assert raw_result.player_id == player.id
+
+
 class TestGetDeck:
     def test_returns_existing_deck(self, session: Session, repository: Repository):
         player = Player(name="Alice")
@@ -64,7 +86,7 @@ class TestGetDeck:
         session.refresh(player)
         assert player.id is not None
 
-        deck = Deck(player_id=player.id)
+        deck = Deck(name="Mono Red", player_id=player.id)
         session.add(deck)
         session.commit()
         session.refresh(deck)
@@ -88,8 +110,8 @@ class TestGetDecks:
         session.refresh(player)
         assert player.id is not None
 
-        deck_1 = Deck(player_id=player.id)
-        deck_2 = Deck(player_id=player.id)
+        deck_1 = Deck(name="Mono Red", player_id=player.id)
+        deck_2 = Deck(name="Mono Blue", player_id=player.id)
         session.add(deck_1)
         session.add(deck_2)
         session.commit()

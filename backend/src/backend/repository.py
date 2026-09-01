@@ -33,6 +33,12 @@ class Repository:
     def get_decks(self):
         return self.session.exec(select(Deck)).all()
 
+    def create_deck(self, deck: Deck):
+        self.session.add(deck)
+        self.session.commit()
+        self.session.refresh(deck)
+        return deck
+
     def get_game(self, game_id: int):
         return self.session.get(Game, game_id)
 

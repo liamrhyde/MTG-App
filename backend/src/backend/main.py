@@ -1,4 +1,4 @@
-from db.records import Player
+from db.records import Deck, Player
 from contextlib import asynccontextmanager
 
 from .repository import RepositoryDep
@@ -48,6 +48,11 @@ def get_deck(repository: RepositoryDep, deck_id: int):
 def get_decks(repository: RepositoryDep):
     decks = repository.get_decks()
     return {d.id: d for d in decks}
+
+
+@app.post("/deck")
+def create_deck(deck: Deck, repository: RepositoryDep):
+    return repository.create_deck(deck)
 
 
 @app.get("/game/{game_id}")
