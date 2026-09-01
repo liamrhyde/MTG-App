@@ -42,6 +42,20 @@ class TestGetPlayers:
         assert len(result) == 0
 
 
+class TestCreatePlayer:
+    def test_create_player(self, repository: Repository, session: Session):
+        player = Player(name="Alfred")
+
+        response = repository.create_player(player)
+
+        assert response.id is not None
+        assert response.name == "Alfred"
+
+        raw_result = session.get(Player, response.id)
+        assert raw_result
+        assert raw_result.name == "Alfred"
+
+
 class TestGetDeck:
     def test_returns_existing_deck(self, session: Session, repository: Repository):
         player = Player(name="Alice")

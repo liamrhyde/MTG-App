@@ -21,6 +21,12 @@ class Repository:
     def get_players(self):
         return self.session.exec(select(Player)).all()
 
+    def create_player(self, player: Player):
+        self.session.add(player)
+        self.session.commit()
+        self.session.refresh(player)
+        return player
+
     def get_deck(self, deck_id: int):
         return self.session.get(Deck, deck_id)
 
