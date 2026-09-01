@@ -25,7 +25,7 @@ export interface DeckSelectionIds {
 interface DeckSelectorProps {
     value: DeckSelectionIds | undefined;
     onChange: (index: number, value: DeckSelectionIds) => void;
-    playersById: Record<UUID, Player>;
+    playersById?: Record<UUID, Player>;
     decksById: Record<UUID, Deck>;
     onRemove?: (index: number) => void;
     index: number;
@@ -45,10 +45,10 @@ export const DeckSelector = ({
     getFormErrors,
 }: DeckSelectorProps) => {
     const selectedPlayer = value?.playerId
-        ? playersById[value.playerId]
+        ? playersById?.[value.playerId]
         : undefined;
     const selectedDeck = value?.deckId ? decksById[value.deckId] : undefined;
-    const players = Object.values(playersById);
+    const players = Object.values(playersById ?? {});
     const decks = Object.values(decksById);
 
     const playerErrors = getFormErrors(index, "playerId");

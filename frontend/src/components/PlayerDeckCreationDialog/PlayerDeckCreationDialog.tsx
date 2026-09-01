@@ -17,6 +17,8 @@ import {
 } from "@/views/NewGame/schemas";
 import type { Deck, Player } from "@/views/NewGame/schemas";
 import { useState } from "react";
+import { useCreatePlayer } from "@/hooks/usePlayers";
+import { Spinner } from "../ui/spinner";
 
 type Step =
     | { step: "player-form" }
@@ -30,11 +32,10 @@ interface PlayerDeckCreationDialogProps {
     player?: Player;
 }
 
-const MOCK_PLAYER: Player = { id: "1", name: "Player One" } as const;
 const MOCK_DECK: Deck = {
     id: "1",
     name: "Deck One",
-    player: MOCK_PLAYER.id,
+    player: "1",
 } as const;
 
 export const PlayerDeckCreationDialog = ({
@@ -46,25 +47,30 @@ export const PlayerDeckCreationDialog = ({
         player ? { step: "deck-form", player } : { step: "player-form" },
     );
 
+    const { createPlayer, isPending } = useCreatePlayer();
+
     const playerForm = useForm({ schema: PlayerCreationSchema });
     const deckForm = useForm({ schema: DeckCreationSchema });
 
-    const handlePlayerSubmit = (
+    const handlePlayerSubmit = async (
         values: v.InferOutput<typeof PlayerCreationSchema>,
     ) => {
-        // TODO: submit the new player through the API hook (added later), then
-        // advance the dialog to the Deck creation step.
-        console.log("Create player", values);
-        setCurrentStep({ step: "player-created", player: MOCK_PLAYER });
+        await createPlayer(values).then((p) =>
+            setCurrentStep({ step: "player-created", player: p }),
+        );
     };
 
     const handleDeckSubmit = (
         values: v.InferOutput<typeof DeckCreationSchema>,
     ) => {
         console.log("Create Deck", values);
+        if (currentStep.step !== "deck-form") {
+            // TODO: Raise an error
+            return;
+        }
         setCurrentStep({
             step: "deck-created",
-            player: MOCK_PLAYER,
+            player: currentStep.player,
             deck: MOCK_DECK,
         });
     };
@@ -119,7 +125,12 @@ export const PlayerDeckCreationDialog = ({
                                 >
                                     Cancel
                                 </Button>
-                                <Button type="submit">Create Player</Button>
+                                <Button type="submit" disabled={isPending}>
+                                    {isPending && (
+                                        <Spinner data-icon="inline-start" />
+                                    )}
+                                    Create Player
+                                </Button>
                             </DialogFooter>
                         </Form>
                     )}
@@ -147,7 +158,7 @@ export const PlayerDeckCreationDialog = ({
                                     onClick={() =>
                                         setCurrentStep({
                                             step: "deck-form",
-                                            player: MOCK_PLAYER,
+                                            player: currentStep.player,
                                         })
                                     }
                                 >

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DeckSelector, type DeckSelectionIds } from "@/components/DeckSelector";
-import type { Deck, Player, UUID } from "./schemas";
+import type { Deck, UUID } from "./schemas";
 
 import {
     Field,
@@ -18,14 +18,7 @@ import { useCallback } from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { GameSelectionSchema } from "./schemas";
 import { navigate } from "wouter/use-browser-location";
-
-const MOCK_PLAYERS: Record<UUID, Player> = {
-    a1: { id: "a1", name: "Alice" },
-    b2: { id: "b2", name: "Bob" },
-    c3: { id: "c3", name: "Charlie" },
-    d4: { id: "d4", name: "Dana" },
-    l5: { id: "l5", name: "Liam" },
-};
+import { usePlayers } from "@/hooks/usePlayers";
 
 const MOCK_DECKS: Record<UUID, Deck> = {
     "d-a1-1": { id: "d-a1-1", name: "Mono Red Aggro", player: "a1" },
@@ -39,6 +32,7 @@ const MOCK_DECKS: Record<UUID, Deck> = {
 };
 
 export const NewGame = () => {
+    const { players } = usePlayers();
     const newGameForm = useForm({ schema: GameSelectionSchema });
 
     const removeItem = (index: number) =>
@@ -98,9 +92,7 @@ export const NewGame = () => {
                                                 {(field) => (
                                                     <DeckSelector
                                                         index={index}
-                                                        playersById={
-                                                            MOCK_PLAYERS
-                                                        }
+                                                        playersById={players}
                                                         decksById={MOCK_DECKS}
                                                         onRemove={removeItem}
                                                         onChange={changeItem}
