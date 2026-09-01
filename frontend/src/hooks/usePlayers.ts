@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createPlayer, getPlayers } from "@/api";
+import type { Player, UUID } from "@/views/NewGame/schemas";
 
 export function usePlayers() {
     const query = useQuery({
@@ -18,7 +19,11 @@ export function useCreatePlayer() {
     const createPlayerMutation = useMutation({
         mutationFn: createPlayer,
         onSuccess: (player) => {
-            queryClient.setQueryData(["player", player.id], player);
+            // Seed the list cache so lookups resolve before the refetch lands
+            queryClient.setQueryData<Record<UUID, Player>>(
+                ["players"],
+                (old) => ({ ...(old ?? {}), [player.id]: player }),
+            );
             // Invalidate players query, as we have a new list now
             queryClient.invalidateQueries({ queryKey: ["players"] });
         },

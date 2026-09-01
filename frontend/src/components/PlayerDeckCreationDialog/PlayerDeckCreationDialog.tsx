@@ -30,6 +30,7 @@ interface PlayerDeckCreationDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     player?: Player;
+    onPlayerCreated?: (playerId: string) => void;
 }
 
 const MOCK_DECK: Deck = {
@@ -42,6 +43,7 @@ export const PlayerDeckCreationDialog = ({
     isOpen,
     onOpenChange,
     player,
+    onPlayerCreated,
 }: PlayerDeckCreationDialogProps) => {
     const [currentStep, setCurrentStep] = useState<Step>(() =>
         player ? { step: "deck-form", player } : { step: "player-form" },
@@ -55,9 +57,10 @@ export const PlayerDeckCreationDialog = ({
     const handlePlayerSubmit = async (
         values: v.InferOutput<typeof PlayerCreationSchema>,
     ) => {
-        await createPlayer(values).then((p) =>
-            setCurrentStep({ step: "player-created", player: p }),
-        );
+        await createPlayer(values).then((p) => {
+            onPlayerCreated?.(p.id);
+            setCurrentStep({ step: "player-created", player: p });
+        });
     };
 
     const handleDeckSubmit = (

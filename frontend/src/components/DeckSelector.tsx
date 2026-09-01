@@ -237,6 +237,7 @@ export const DeckSelector = ({
                     isOpen={isCreationOpen}
                     onOpenChange={setCreationOpen}
                     player={selectedPlayer}
+                    onPlayerCreated={handlePlayerChange}
                 />
             )}
         </div>
