@@ -29,7 +29,8 @@ def get_player(repository: RepositoryDep, player_id: int):
 
 @app.get("/players")
 def get_players(repository: RepositoryDep):
-    return repository.get_players()
+    players = repository.get_players()
+    return {p.id: p for p in players}
 
 
 @app.get("/deck/{deck_id}")
@@ -39,7 +40,8 @@ def get_deck(repository: RepositoryDep, deck_id: int):
 
 @app.get("/decks")
 def get_decks(repository: RepositoryDep):
-    return repository.get_decks()
+    decks = repository.get_decks()
+    return {d.id: d for d in decks}
 
 
 @app.get("/game/{game_id}")
@@ -49,4 +51,5 @@ def get_game(repository: RepositoryDep, game_id: int):
 
 @app.get("/games")
 def get_games(repository: RepositoryDep):
-    return repository.get_games()
+    games = repository.get_games()
+    return {g.id: g for g in games}
