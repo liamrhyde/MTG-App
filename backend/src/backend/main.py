@@ -34,7 +34,7 @@ def get_players(repository: RepositoryDep):
     return {p.id: p for p in players}
 
 
-@app.post("/player/create")
+@app.post("/player")
 def create_player(player: Player, repository: RepositoryDep):
     return repository.create_player(player)
 
