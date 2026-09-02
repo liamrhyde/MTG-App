@@ -1,6 +1,7 @@
 from sqlmodel import Session
-from backend.repository import Repository, get_repository
-from db.models import GameStatus, PlayerHealth
+
+from backend.repository import Repository
+from db.models import GameStatus
 from db.records import Deck, Game, Player
 
 

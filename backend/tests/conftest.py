@@ -1,7 +1,8 @@
 import pytest
-from backend.repository import Repository
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
+
+from backend.repository import Repository
 
 
 @pytest.fixture()

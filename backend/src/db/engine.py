@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import Session, SQLModel, create_engine
 
 SQLITE_FILE_NAME = "database.db"
 SQLITE_URL = f"sqlite:///{SQLITE_FILE_NAME}"

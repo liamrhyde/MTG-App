@@ -1,11 +1,10 @@
-from sqlmodel import select
-from db.records import Deck
 from typing import Annotated
 
-from db import SessionDep
-from db.records import Player, Game
 from fastapi import Depends
-from sqlmodel import Session
+from sqlmodel import Session, select
+
+from db import SessionDep
+from db.records import Deck, Game, Player
 
 
 class Repository:

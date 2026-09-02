@@ -1,5 +1,6 @@
-from sqlmodel import Column, DateTime, Field, func, SQLModel
 from datetime import datetime
+
+from sqlmodel import Column, DateTime, Field, SQLModel, func
 
 
 class _StampedRecord(SQLModel, table=True):

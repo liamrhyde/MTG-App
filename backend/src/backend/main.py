@@ -1,10 +1,12 @@
-from db.records import Deck, Player
 from contextlib import asynccontextmanager
 
-from .repository import RepositoryDep
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from db import init_db
+from db.records import Deck, Player
+
+from .repository import RepositoryDep
 
 
 @asynccontextmanager
