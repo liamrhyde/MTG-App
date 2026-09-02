@@ -13,10 +13,10 @@ interface PlayerSectorProps {
     deck: Deck;
     playerGameState: PlayerGameState;
     playerHealthChange: PlayerHealthChange | undefined;
-    selectedPlayerId: string | null;
-    onSelect: (playerId: string) => void;
+    selectedPlayerId: number | null;
+    onSelect: (playerId: number) => void;
     onHealthStateChange?: (
-        targetPlayerId: string,
+        targetPlayerId: number,
         healthType: keyof PlayerHealthChange,
         value: number,
     ) => void;

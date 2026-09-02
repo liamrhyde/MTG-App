@@ -3,7 +3,7 @@ import * as v from "valibot";
 /* Player */
 
 export interface Player {
-    id: string;
+    id: number;
     name: string;
 }
 
@@ -16,14 +16,14 @@ export type CreatePlayer = v.InferOutput<typeof PlayerCreationSchema>;
 /* Deck */
 
 export interface Deck {
-    id: string;
+    id: number;
     name: string;
-    ownerId: string;
+    ownerId: number;
 }
 
 export const DeckCreationSchema = v.object({
     name: v.pipe(v.string(), v.trim(), v.nonEmpty("Deck Name required")),
-    ownerId: v.pipe(v.string(), v.nonEmpty("Owner Player required")),
+    ownerId: v.pipe(v.number("Owner id required")),
 });
 
 export type CreateDeck = v.InferOutput<typeof DeckCreationSchema>;
@@ -34,8 +34,8 @@ export const GameSelectionSchema = v.object({
     selectedDecks: v.pipe(
         v.array(
             v.object({
-                deckId: v.pipe(v.string(), v.nonEmpty("Deck required")),
-                playerId: v.pipe(v.string(), v.nonEmpty("Player required")),
+                deckId: v.number("Deck id required"),
+                playerId: v.number("Player id required"),
             }),
         ),
         v.maxLength(8),
@@ -46,13 +46,13 @@ export const GameSelectionSchema = v.object({
 /* Live game state */
 
 export interface PlayerGameState {
-    deckId: string;
+    deckId: number;
     health: number;
     poison: number;
-    commander: Record<string, number>;
+    commander: Record<number, number>;
 }
 
-export type GameState = Record<string, PlayerGameState>;
+export type GameState = Record<number, PlayerGameState>;
 
 export interface PlayerHealthChange {
     health: number;
@@ -61,9 +61,9 @@ export interface PlayerHealthChange {
 }
 
 export interface GameStateChange {
-    sourcePlayer: string;
+    sourcePlayer: number;
     targets: Record<
-        string, // Target Player ID
+        number, // Target Player ID
         PlayerHealthChange
     >;
 }

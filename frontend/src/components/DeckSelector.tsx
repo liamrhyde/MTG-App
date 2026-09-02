@@ -18,8 +18,8 @@ import { useState } from "react";
 import { PlayerDeckCreationDialog } from "./PlayerDeckCreationDialog/PlayerDeckCreationDialog";
 
 export interface DeckSelectionIds {
-    playerId?: string;
-    deckId?: string;
+    playerId?: number;
+    deckId?: number;
 }
 
 interface DeckSelectorProps {
@@ -73,10 +73,10 @@ export const DeckSelector = ({
         { value: "Other Player Decks", items: otherDecks },
     ];
 
-    const handlePlayerChange = (playerId: string | null) =>
+    const handlePlayerChange = (playerId: number | null) =>
         onChange(index, { playerId: playerId ?? undefined, deckId: undefined });
 
-    const handleDeckChange = (deckId: string | null) =>
+    const handleDeckChange = (deckId: number | null) =>
         onChange(index, {
             playerId: selectedPlayer?.id,
             deckId: deckId ?? undefined,

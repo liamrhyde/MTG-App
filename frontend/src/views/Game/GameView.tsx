@@ -1,57 +1,60 @@
 import { useState } from "react";
 import { useParams } from "wouter";
 import { PlayerSector } from "@/views/Game/PlayerSector";
-import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
 import type {
+    Deck,
+    Player,
     GameState,
     GameStateChange,
     PlayerHealthChange,
-} from "@/views/Game/schemas";
+} from "@/schemas";
 
-const MOCK_PLAYERS: Record<UUID, Player> = {
-    p1: { id: "p1", name: "Alice" },
-    p2: { id: "p2", name: "Bob" },
-    p3: { id: "p3", name: "Charlie" },
-    p4: { id: "p4", name: "Diana" },
+const MOCK_PLAYERS: Record<number, Player> = {
+    1: { id: 1, name: "Alice" },
+    2: { id: 2, name: "Bob" },
+    3: { id: 3, name: "Charlie" },
+    4: { id: 4, name: "Diana" },
 };
 
-const MOCK_DECKS: Record<UUID, Deck> = {
-    "d-p1-1": { id: "d-p1-1", name: "Mono Red Aggro", player: "p1" },
-    "d-p2-1": { id: "d-p2-1", name: "Blue Control", player: "p2" },
-    "d-p3-1": { id: "d-p3-1", name: "Green Ramp", player: "p3" },
-    "d-p4-1": { id: "d-p4-1", name: "Black Discard", player: "p4" },
+const MOCK_DECKS: Record<number, Deck> = {
+    1: { id: 1, name: "Mono Red Aggro", ownerId: 1 },
+    2: { id: 2, name: "Blue Control", ownerId: 2 },
+    3: { id: 3, name: "Green Ramp", ownerId: 3 },
+    4: { id: 4, name: "Black Discard", ownerId: 4 },
 };
 
 const MOCK_GAME_STATE: GameState = {
-    p1: {
-        deckId: "d-p1-1",
+    1: {
+        deckId: 1,
         health: 40,
         poison: 0,
-        commander: { p2: 0, p3: 0, p4: 0 },
+        commander: { 2: 0, 3: 0, 4: 0 },
     },
-    p2: {
-        deckId: "d-p2-1",
+    2: {
+        deckId: 2,
         health: 40,
         poison: 0,
-        commander: { p1: 0, p3: 0, p4: 0 },
+        commander: { 1: 0, 3: 0, 4: 0 },
     },
-    p3: {
-        deckId: "d-p3-1",
+    3: {
+        deckId: 3,
         health: 40,
         poison: 0,
-        commander: { p1: 0, p2: 0, p4: 0 },
+        commander: { 1: 0, 2: 0, 4: 0 },
     },
-    p4: {
-        deckId: "d-p4-1",
+    4: {
+        deckId: 4,
         health: 40,
         poison: 0,
-        commander: { p1: 0, p2: 0, p3: 0 },
+        commander: { 1: 0, 2: 0, 3: 0 },
     },
 };
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
-    const [selectedPlayerId, setSelectedPlayerId] = useState<UUID | null>(null);
+    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(
+        null,
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [gameState, setGameState] = useState<GameState>(MOCK_GAME_STATE);
@@ -59,7 +62,7 @@ export const GameView = () => {
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
 
-    const handleSelectPlayer = (playerId: string | null) => {
+    const handleSelectPlayer = (playerId: number | null) => {
         if (selectedPlayerId || !playerId) {
             return;
         }
@@ -68,7 +71,7 @@ export const GameView = () => {
     };
 
     const handleHealthChange = (
-        targetPlayerId: UUID,
+        targetPlayerId: number,
         healthType: keyof PlayerHealthChange,
         value: number,
     ) => {
@@ -111,14 +114,14 @@ export const GameView = () => {
                 {Object.entries(gameState).map(([playerId, playerState]) => (
                     <PlayerSector
                         key={playerId}
-                        player={MOCK_PLAYERS[playerId]}
+                        player={MOCK_PLAYERS[Number(playerId)]}
                         deck={MOCK_DECKS[playerState.deckId]}
                         playerGameState={playerState}
                         selectedPlayerId={selectedPlayerId}
                         onSelect={handleSelectPlayer}
                         onHealthStateChange={handleHealthChange}
                         playerHealthChange={
-                            gameStateChange?.targets?.[playerId]
+                            gameStateChange?.targets?.[Number(playerId)]
                         }
                         onSubmit={handleSubmit}
                         onCancel={handleCancel}

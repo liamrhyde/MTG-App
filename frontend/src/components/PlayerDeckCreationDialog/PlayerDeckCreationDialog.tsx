@@ -28,8 +28,8 @@ interface PlayerDeckCreationDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     player?: Player;
-    onPlayerCreated?: (playerId: string) => void;
-    onDeckCreated?: (deckId: string) => void;
+    onPlayerCreated?: (playerId: number) => void;
+    onDeckCreated?: (deckId: number) => void;
 }
 
 export const PlayerDeckCreationDialog = ({
@@ -66,7 +66,9 @@ export const PlayerDeckCreationDialog = ({
         values: v.InferOutput<typeof DeckCreationSchema>,
     ) => {
         if (currentStep.step !== "deck-form") {
-            // TODO: Raise an error
+            console.error(
+                `Unable to create deck: Current step'${currentStep.step}' does not match expected 'deck-form'`,
+            );
             return;
         }
         const player = currentStep.player;
