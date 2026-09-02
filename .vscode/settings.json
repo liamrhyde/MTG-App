@@ -1,5 +1,6 @@
 {
     "pylint.cwd": "${workspaceFolder}/backend",
+    "eslint.workingDirectories": [{ "mode": "auto" }],
     "python.testing.pytestArgs": [
         "backend"
     ],
