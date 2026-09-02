@@ -26,3 +26,16 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+
+      # Formatters write fixes to disk (unstaged).
+      - id: prettier-frontend
+        name: prettier (frontend)
+        entry: frontend/node_modules/.bin/prettier --write --ignore-unknown
+        language: system
+        files: ^frontend/.*\.(m?[jt]sx?|json|jsonc|css|scss|html|md|ya?ml)$
+
+      - id: ruff-format-backend
+        name: ruff format (backend)
+        entry: bash -c 'exec "${VIRTUAL_ENV:-$PWD/backend/.venv}/bin/ruff" format "$@"' --
+        language: system
+        files: ^backend/.*\.py$
