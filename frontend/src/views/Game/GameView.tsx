@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useParams } from "wouter";
-import { PlayerSector } from "@/views/Game/PlayerSector";
+import { GameDeckSection } from "@/views/Game/GameDeckSection";
 import type {
     Deck,
     Player,
     GameState,
     GameStateChange,
-    PlayerHealthChange,
+    DeckHealthChange,
 } from "@/schemas";
 
 const MOCK_PLAYERS: Record<number, Player> = {
@@ -52,9 +52,7 @@ const MOCK_GAME_STATE: GameState = {
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
-    const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(
-        null,
-    );
+    const [selectedDeckId, setSelectedDeckId] = useState<number | null>(null);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [gameState, setGameState] = useState<GameState>(MOCK_GAME_STATE);
@@ -62,22 +60,22 @@ export const GameView = () => {
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
 
-    const handleSelectPlayer = (playerId: number | null) => {
-        if (selectedPlayerId || !playerId) {
+    const handleSelectDeck = (deckId: number | null) => {
+        if (selectedDeckId || !deckId) {
             return;
         }
-        setSelectedPlayerId((selection) => selection ?? playerId);
-        setGameStateChange({ sourcePlayer: playerId, targets: {} });
+        setSelectedDeckId((selection) => selection ?? deckId);
+        setGameStateChange({ sourceDeck: deckId, targets: {} });
     };
 
     const handleHealthChange = (
-        targetPlayerId: number,
-        healthType: keyof PlayerHealthChange,
+        targetDeckId: number,
+        healthType: keyof DeckHealthChange,
         value: number,
     ) => {
         setGameStateChange((current) => {
             if (!current) return null;
-            const targetPlayerData = current.targets?.[targetPlayerId] ?? {
+            const targetDeckData = current.targets?.[targetDeckId] ?? {
                 health: 0,
                 poison: 0,
                 commander: 0,
@@ -86,8 +84,8 @@ export const GameView = () => {
                 ...current,
                 targets: {
                     ...current.targets,
-                    [targetPlayerId]: {
-                        ...targetPlayerData,
+                    [targetDeckId]: {
+                        ...targetDeckData,
                         [healthType]: value,
                     },
                 },
@@ -96,12 +94,12 @@ export const GameView = () => {
     };
 
     const handleSubmit = () => {
-        setSelectedPlayerId(null);
+        setSelectedDeckId(null);
         setGameStateChange(null);
     };
 
     const handleCancel = () => {
-        setSelectedPlayerId(null);
+        setSelectedDeckId(null);
         setGameStateChange(null);
     };
 
@@ -111,17 +109,17 @@ export const GameView = () => {
                 Game {gameId}
             </span>
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
-                {Object.entries(gameState).map(([playerId, playerState]) => (
-                    <PlayerSector
-                        key={playerId}
-                        player={MOCK_PLAYERS[Number(playerId)]}
-                        deck={MOCK_DECKS[playerState.deckId]}
-                        playerGameState={playerState}
-                        selectedPlayerId={selectedPlayerId}
-                        onSelect={handleSelectPlayer}
+                {Object.entries(gameState).map(([deckId, deckState]) => (
+                    <GameDeckSection
+                        key={deckId}
+                        player={MOCK_PLAYERS[Number(deckId)]}
+                        deck={MOCK_DECKS[deckState.deckId]}
+                        deckGameState={deckState}
+                        selectedDeckId={selectedDeckId}
+                        onSelect={handleSelectDeck}
                         onHealthStateChange={handleHealthChange}
-                        playerHealthChange={
-                            gameStateChange?.targets?.[Number(playerId)]
+                        deckHealthChange={
+                            gameStateChange?.targets?.[Number(deckId)]
                         }
                         onSubmit={handleSubmit}
                         onCancel={handleCancel}

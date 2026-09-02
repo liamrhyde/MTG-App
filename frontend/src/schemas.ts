@@ -45,25 +45,25 @@ export const GameSelectionSchema = v.object({
 
 /* Live game state */
 
-export interface PlayerGameState {
+export interface DeckGameState {
     deckId: number;
     health: number;
     poison: number;
     commander: Record<number, number>;
 }
 
-export type GameState = Record<number, PlayerGameState>;
+export type GameState = Record<number, DeckGameState>;
 
-export interface PlayerHealthChange {
+export interface DeckHealthChange {
     health: number;
     poison: number;
     commander: number;
 }
 
 export interface GameStateChange {
-    sourcePlayer: number;
+    sourceDeck: number;
     targets: Record<
         number, // Target Player ID
-        PlayerHealthChange
+        DeckHealthChange
     >;
 }

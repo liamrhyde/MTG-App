@@ -3,68 +3,68 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Heart, Radiation, X } from "lucide-react";
 import type { Deck, Player } from "@/schemas";
-import type { PlayerGameState, PlayerHealthChange } from "@/schemas";
+import type { DeckGameState, DeckHealthChange } from "@/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
 import { CommanderDamageGrid } from "@/components/CommanderDamageGrid";
 import { ButtonGroup } from "@/components/ui/button-group";
 
-interface PlayerSectorProps {
+interface GameDeckSectionProps {
     player: Player;
     deck: Deck;
-    playerGameState: PlayerGameState;
-    playerHealthChange: PlayerHealthChange | undefined;
-    selectedPlayerId: number | null;
-    onSelect: (playerId: number) => void;
+    deckGameState: DeckGameState;
+    deckHealthChange: DeckHealthChange | undefined;
+    selectedDeckId: number | null;
+    onSelect: (deckId: number) => void;
     onHealthStateChange?: (
-        targetPlayerId: number,
-        healthType: keyof PlayerHealthChange,
+        targetDeckId: number,
+        healthType: keyof DeckHealthChange,
         value: number,
     ) => void;
     onSubmit?: () => void;
     onCancel?: () => void;
 }
 
-export const PlayerSector = ({
-    player,
+export const GameDeckSection = ({
     deck,
-    playerGameState,
-    playerHealthChange,
-    selectedPlayerId,
+    player,
+    deckGameState,
+    deckHealthChange,
+    selectedDeckId,
     onSelect,
     onHealthStateChange,
     onSubmit,
     onCancel,
-}: PlayerSectorProps) => {
-    const playerId = player.id;
-    const isSelected = selectedPlayerId === playerId;
+}: GameDeckSectionProps) => {
+    const deckId = player.id;
+    const isSelected = selectedDeckId === deckId;
 
     const handleHealthChange = (value: number) =>
-        onHealthStateChange?.(playerId, "health", value);
+        onHealthStateChange?.(deckId, "health", value);
 
     const handleCommanderChange = (value: number) => {
-        const delta = value - (playerHealthChange?.commander ?? 0);
-        onHealthStateChange?.(playerId, "commander", value);
+        const delta = value - (deckHealthChange?.commander ?? 0);
+        onHealthStateChange?.(deckId, "commander", value);
         onHealthStateChange?.(
-            playerId,
+            deckId,
             "health",
-            (playerHealthChange?.health ?? 0) - delta,
+            (deckHealthChange?.health ?? 0) - delta,
         );
     };
 
     const handlePoisonChange = (value: number) =>
-        onHealthStateChange?.(playerId, "poison", value);
+        onHealthStateChange?.(deckId, "poison", value);
 
     return (
         <Card
             size="sm"
             className={cn(
                 "min-w-0 min-h-0 text-left transition-colors",
-                selectedPlayerId ? "cursor-default" : "cursor-pointer",
+                selectedDeckId ? "cursor-default" : "cursor-pointer",
                 isSelected
                     ? "bg-accent ring-2 ring-primary"
                     : "bg-muted/30 hover:bg-muted/50",
             )}
-            onClick={() => onSelect(playerId)}
+            onClick={() => onSelect(deckId)}
         >
             <CardHeader className="flex justify-between items-center m-0">
                 <div className="flex gap-1 items-center min-h-7">
@@ -103,32 +103,30 @@ export const PlayerSector = ({
             <CardContent className="flex flex-col gap-1 lg:gap-3 justify-between grow">
                 <HealthDisplay
                     icon={Heart}
-                    value={playerGameState.health}
-                    changeValue={playerHealthChange?.health}
+                    value={deckGameState.health}
+                    changeValue={deckHealthChange?.health}
                     onChange={handleHealthChange}
-                    editable={!!selectedPlayerId}
+                    editable={!!selectedDeckId}
                 />
-                {selectedPlayerId ? (
+                {selectedDeckId ? (
                     <HealthDisplay
                         icon={Crown}
-                        value={
-                            playerGameState.commander?.[selectedPlayerId] ?? 0
-                        }
-                        changeValue={playerHealthChange?.commander}
+                        value={deckGameState.commander?.[selectedDeckId] ?? 0}
+                        changeValue={deckHealthChange?.commander}
                         onChange={handleCommanderChange}
-                        editable={!!selectedPlayerId}
+                        editable={!!selectedDeckId}
                     />
                 ) : (
                     <CommanderDamageGrid
-                        commanderDamage={playerGameState.commander}
+                        commanderDamage={deckGameState.commander}
                     />
                 )}
                 <HealthDisplay
                     icon={Radiation}
-                    value={playerGameState.poison}
-                    changeValue={playerHealthChange?.poison}
+                    value={deckGameState.poison}
+                    changeValue={deckHealthChange?.poison}
                     onChange={handlePoisonChange}
-                    editable={!!selectedPlayerId}
+                    editable={!!selectedDeckId}
                     className="flex-[2]"
                 />
             </CardContent>
