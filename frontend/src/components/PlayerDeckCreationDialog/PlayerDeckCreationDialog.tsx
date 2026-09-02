@@ -1,4 +1,4 @@
-import { Field, Form, useForm } from "@formisch/react";
+import { Field, Form, setInput, useForm } from "@formisch/react";
 import type * as v from "valibot";
 
 import {
@@ -11,11 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    DeckCreationSchema,
-    PlayerCreationSchema,
-} from "@/views/NewGame/schemas";
-import type { Deck, Player } from "@/views/NewGame/schemas";
+import { DeckCreationSchema, PlayerCreationSchema } from "@/schemas";
+import type { Deck, Player } from "@/schemas";
 import { useState } from "react";
 import { useCreatePlayer } from "@/hooks/usePlayers";
 import { useCreateDeck } from "@/hooks/useDecks";
@@ -50,13 +47,17 @@ export const PlayerDeckCreationDialog = ({
     const { createDeck, isPending: isPendingDeck } = useCreateDeck();
 
     const playerForm = useForm({ schema: PlayerCreationSchema });
-    const deckForm = useForm({ schema: DeckCreationSchema });
+    const deckForm = useForm({
+        schema: DeckCreationSchema,
+        initialInput: { playerId: player?.id },
+    });
 
     const handlePlayerSubmit = async (
         values: v.InferOutput<typeof PlayerCreationSchema>,
     ) => {
         await createPlayer(values).then((p) => {
             onPlayerCreated?.(p.id);
+            setInput(deckForm, { path: ["playerId"], input: p.id });
             setCurrentStep({ step: "player-created", player: p });
         });
     };
@@ -69,12 +70,10 @@ export const PlayerDeckCreationDialog = ({
             return;
         }
         const player = currentStep.player;
-        await createDeck({ name: values.name, player_id: player.id }).then(
-            (deck) => {
-                onDeckCreated?.(deck.id);
-                setCurrentStep({ step: "deck-created", player, deck });
-            },
-        );
+        await createDeck(values).then((deck) => {
+            onDeckCreated?.(deck.id);
+            setCurrentStep({ step: "deck-created", player, deck });
+        });
     };
 
     return (

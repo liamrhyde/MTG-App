@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Heart, Radiation, X } from "lucide-react";
-import type { Deck, Player, UUID } from "@/views/NewGame/schemas";
-import type { PlayerGameState, PlayerHealthChange } from "@/views/Game/schemas";
+import type { Deck, Player } from "@/schemas";
+import type { PlayerGameState, PlayerHealthChange } from "@/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
 import { CommanderDamageGrid } from "@/components/CommanderDamageGrid";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -13,10 +13,10 @@ interface PlayerSectorProps {
     deck: Deck;
     playerGameState: PlayerGameState;
     playerHealthChange: PlayerHealthChange | undefined;
-    selectedPlayerId: UUID | null;
-    onSelect: (playerId: UUID) => void;
+    selectedPlayerId: string | null;
+    onSelect: (playerId: string) => void;
     onHealthStateChange?: (
-        targetPlayerId: UUID,
+        targetPlayerId: string,
         healthType: keyof PlayerHealthChange,
         value: number,
     ) => void;

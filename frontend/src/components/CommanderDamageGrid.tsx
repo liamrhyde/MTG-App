@@ -1,9 +1,8 @@
-import type { UUID } from "@/views/NewGame/schemas";
 import { Crown } from "lucide-react";
 import { HealthDisplay } from "./HealthDisplay";
 
 interface CommanderDamageGridProps {
-    commanderDamage: Record<UUID, number>;
+    commanderDamage: Record<string, number>;
 }
 
 export const CommanderDamageGrid = ({

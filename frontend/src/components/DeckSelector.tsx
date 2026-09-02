@@ -12,21 +12,21 @@ import {
     ComboboxLabel,
     ComboboxSeparator,
 } from "@/components/ui/combobox";
-import type { UUID, Player, Deck } from "@/views/NewGame/schemas";
+import type { Player, Deck } from "@/schemas";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { PlayerDeckCreationDialog } from "./PlayerDeckCreationDialog/PlayerDeckCreationDialog";
 
 export interface DeckSelectionIds {
-    playerId?: UUID;
-    deckId?: UUID;
+    playerId?: string;
+    deckId?: string;
 }
 
 interface DeckSelectorProps {
     value: DeckSelectionIds | undefined;
     onChange: (index: number, value: DeckSelectionIds) => void;
-    playersById?: Record<UUID, Player>;
-    decksById?: Record<UUID, Deck>;
+    playersById?: Record<string, Player>;
+    decksById?: Record<string, Deck>;
     onRemove?: (index: number) => void;
     index: number;
     getFormErrors: (
@@ -55,10 +55,10 @@ export const DeckSelector = ({
     const deckErrors = getFormErrors(index, "deckId");
 
     const playerDecks = selectedPlayer
-        ? decks.filter((d) => d.player_id === selectedPlayer.id)
+        ? decks.filter((d) => d.playerId === selectedPlayer.id)
         : [];
     const otherDecks = selectedPlayer
-        ? decks.filter((d) => d.player_id !== selectedPlayer.id)
+        ? decks.filter((d) => d.playerId !== selectedPlayer.id)
         : [];
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
@@ -103,7 +103,7 @@ export const DeckSelector = ({
                         Player
                     </label>
                     <Combobox
-                        value={selectedPlayer?.id ?? ""}
+                        value={selectedPlayer?.id ?? null}
                         onValueChange={handlePlayerChange}
                         items={players}
                         autoHighlight
@@ -156,7 +156,7 @@ export const DeckSelector = ({
                         Deck
                     </label>
                     <Combobox
-                        value={selectedDeck?.id ?? ""}
+                        value={selectedDeck?.id ?? null}
                         onValueChange={handleDeckChange}
                         disabled={!selectedPlayer}
                         items={availableDecks}

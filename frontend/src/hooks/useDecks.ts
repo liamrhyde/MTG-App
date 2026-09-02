@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createDeck, getDecks } from "@/api";
-import type { Deck, UUID } from "@/views/NewGame/schemas";
+import type { Deck } from "@/schemas";
 
 export function useDecks() {
     const query = useQuery({
@@ -20,7 +20,7 @@ export function useCreateDeck() {
         mutationFn: createDeck,
         onSuccess: (deck) => {
             // Seed the list cache so lookups resolve before the refetch lands
-            queryClient.setQueryData<Record<UUID, Deck>>(
+            queryClient.setQueryData<Record<string, Deck>>(
                 ["decks"],
                 (old) => ({ ...(old ?? {}), [deck.id]: deck }),
             );

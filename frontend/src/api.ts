@@ -1,14 +1,8 @@
+import type { Player, CreatePlayer, Deck, CreateDeck } from "@/schemas";
+
+export type { Player, CreatePlayer, Deck, CreateDeck };
+
 const BASE_URL = "http://localhost:8000";
-
-// TODO: Update base schemas with these definitions
-export interface Player {
-    id: string;
-    name: string;
-}
-
-export interface CreatePlayer {
-    name: string;
-}
 
 async function json<T>(res: Response): Promise<T> {
     if (!res.ok) {
@@ -31,20 +25,9 @@ export const createPlayer = async (input: CreatePlayer): Promise<Player> => {
     return json<Player>(res);
 };
 
-export interface Deck {
-    id: string;
-    name: string;
-    player_id: string;
-}
-
-export interface CreateDeck {
-    name: string;
-    player_id: string;
-}
-
-export const getDecks = async (): Promise<Record<string, Deck>> => {
+export const getDecks = async (): Promise<Record<number, Deck>> => {
     const res = await fetch(`${BASE_URL}/decks`);
-    return json<Record<string, Deck>>(res);
+    return json<Record<number, Deck>>(res);
 };
 
 export const createDeck = async (input: CreateDeck): Promise<Deck> => {
