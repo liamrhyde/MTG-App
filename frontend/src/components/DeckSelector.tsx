@@ -55,10 +55,10 @@ export const DeckSelector = ({
     const deckErrors = getFormErrors(index, "deckId");
 
     const playerDecks = selectedPlayer
-        ? decks.filter((d) => d.playerId === selectedPlayer.id)
+        ? decks.filter((d) => d.ownerId === selectedPlayer.id)
         : [];
     const otherDecks = selectedPlayer
-        ? decks.filter((d) => d.playerId !== selectedPlayer.id)
+        ? decks.filter((d) => d.ownerId !== selectedPlayer.id)
         : [];
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);

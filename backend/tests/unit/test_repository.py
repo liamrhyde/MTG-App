@@ -58,35 +58,35 @@ class TestCreatePlayer:
 
 class TestCreateDeck:
     def test_create_deck(self, repository: Repository, session: Session):
-        player = Player(name="Alfred")
-        session.add(player)
+        owner = Player(name="Alfred")
+        session.add(owner)
         session.commit()
-        session.refresh(player)
-        assert player.id is not None
+        session.refresh(owner)
+        assert owner.id is not None
 
-        deck = Deck(name="Mono Red", player_id=player.id)
+        deck = Deck(name="Mono Red", owner_id=owner.id)
 
         response = repository.create_deck(deck)
 
         assert response.id is not None
         assert response.name == "Mono Red"
-        assert response.player_id == player.id
+        assert response.owner_id == owner.id
 
         raw_result = session.get(Deck, response.id)
         assert raw_result
         assert raw_result.name == "Mono Red"
-        assert raw_result.player_id == player.id
+        assert raw_result.owner_id == owner.id
 
 
 class TestGetDeck:
     def test_returns_existing_deck(self, session: Session, repository: Repository):
-        player = Player(name="Alice")
-        session.add(player)
+        owner = Player(name="Alice")
+        session.add(owner)
         session.commit()
-        session.refresh(player)
-        assert player.id is not None
+        session.refresh(owner)
+        assert owner.id is not None
 
-        deck = Deck(name="Mono Red", player_id=player.id)
+        deck = Deck(name="Mono Red", owner_id=owner.id)
         session.add(deck)
         session.commit()
         session.refresh(deck)
@@ -96,7 +96,7 @@ class TestGetDeck:
 
         assert result is not None
         assert result.id == deck.id
-        assert result.player_id == player.id
+        assert result.owner_id == owner.id
 
     def test_returns_none_for_missing_id(self, repository: Repository):
         assert repository.get_deck(999) is None
@@ -104,14 +104,14 @@ class TestGetDeck:
 
 class TestGetDecks:
     def test_returns_all_decks(self, session: Session, repository: Repository):
-        player = Player(name="Alice")
-        session.add(player)
+        owner = Player(name="Alice")
+        session.add(owner)
         session.commit()
-        session.refresh(player)
-        assert player.id is not None
+        session.refresh(owner)
+        assert owner.id is not None
 
-        deck_1 = Deck(name="Mono Red", player_id=player.id)
-        deck_2 = Deck(name="Mono Blue", player_id=player.id)
+        deck_1 = Deck(name="Mono Red", owner_id=owner.id)
+        deck_2 = Deck(name="Mono Blue", owner_id=owner.id)
         session.add(deck_1)
         session.add(deck_2)
         session.commit()

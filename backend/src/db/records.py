@@ -27,7 +27,7 @@ class Player(CamelBaseModel, table=True):
 class Deck(CamelBaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
-    player_id: int = Field(foreign_key="player.id")
+    owner_id: int = Field(foreign_key="player.id")
     owner: Player = Relationship(back_populates="decks")
 
 

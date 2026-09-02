@@ -49,7 +49,7 @@ export const PlayerDeckCreationDialog = ({
     const playerForm = useForm({ schema: PlayerCreationSchema });
     const deckForm = useForm({
         schema: DeckCreationSchema,
-        initialInput: { playerId: player?.id },
+        initialInput: { ownerId: player?.id },
     });
 
     const handlePlayerSubmit = async (
@@ -57,7 +57,7 @@ export const PlayerDeckCreationDialog = ({
     ) => {
         await createPlayer(values).then((p) => {
             onPlayerCreated?.(p.id);
-            setInput(deckForm, { path: ["playerId"], input: p.id });
+            setInput(deckForm, { path: ["ownerId"], input: p.id });
             setCurrentStep({ step: "player-created", player: p });
         });
     };

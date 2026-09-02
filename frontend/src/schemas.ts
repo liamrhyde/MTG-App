@@ -18,12 +18,12 @@ export type CreatePlayer = v.InferOutput<typeof PlayerCreationSchema>;
 export interface Deck {
     id: string;
     name: string;
-    playerId: string;
+    ownerId: string;
 }
 
 export const DeckCreationSchema = v.object({
     name: v.pipe(v.string(), v.trim(), v.nonEmpty("Deck Name required")),
-    playerId: v.pipe(v.string(), v.nonEmpty("Owner Player required")),
+    ownerId: v.pipe(v.string(), v.nonEmpty("Owner Player required")),
 });
 
 export type CreateDeck = v.InferOutput<typeof DeckCreationSchema>;
