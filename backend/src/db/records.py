@@ -1,26 +1,37 @@
 from sqlalchemy import JSON, Column
 from sqlmodel import Relationship, SQLModel, Field
 
+from pydantic import ConfigDict
+from pydantic.alias_generators import to_camel
+
 from db.models import GameStatus, PlayerHealth
 
 
 __all__ = ["Player", "Deck", "Game", "DeckGames"]
 
 
-class Player(SQLModel, table=True):
+class CamelBaseModel(SQLModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
+
+
+class Player(CamelBaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     decks: list["Deck"] = Relationship(back_populates="owner")
 
 
-class Deck(SQLModel, table=True):
+class Deck(CamelBaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     player_id: int = Field(foreign_key="player.id")
     owner: Player = Relationship(back_populates="decks")
 
 
-class Game(SQLModel, table=True):
+class Game(CamelBaseModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     status: GameStatus = Field(default=GameStatus.ACTIVE, index=True)
     player_count: int | None = Field(default=None)
@@ -30,7 +41,7 @@ class Game(SQLModel, table=True):
     # TODO: Add 'events' model
 
 
-class DeckGames(SQLModel, table=True):
+class DeckGames(CamelBaseModel, table=True):
     game_id: int = Field(foreign_key="game.id", primary_key=True)
     deck_id: int = Field(foreign_key="deck.id", primary_key=True)
     player_id: int = Field(foreign_key="player.id")
