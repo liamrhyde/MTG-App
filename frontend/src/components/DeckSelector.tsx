@@ -63,7 +63,9 @@ export const DeckSelector = ({
 
     const [isPlayerSelectorOpen, setPlayerSelectorOpen] = useState(false);
     const [isDeckSelectorOpen, setDeckSelectorOpen] = useState(false);
-    const [isCreationOpen, setCreationOpen] = useState(false);
+    const [creationFlow, setCreationFlow] = useState<"player" | "deck" | null>(
+        null,
+    );
 
     const availableDecks = [
         {
@@ -133,8 +135,8 @@ export const DeckSelector = ({
                             <Button
                                 className="flex w-full justify-start"
                                 onClick={() => {
+                                    setCreationFlow("player");
                                     setPlayerSelectorOpen(false);
-                                    setCreationOpen(true);
                                 }}
                                 variant="ghost"
                             >
@@ -207,7 +209,7 @@ export const DeckSelector = ({
                                 className="flex w-full justify-start"
                                 onClick={() => {
                                     setDeckSelectorOpen(false);
-                                    setCreationOpen(true);
+                                    setCreationFlow("deck");
                                 }}
                                 variant="ghost"
                             >
@@ -231,12 +233,14 @@ export const DeckSelector = ({
                 </p>
             </div>
 
-            {isCreationOpen && (
+            {creationFlow && (
                 <PlayerDeckCreationDialog
                     key={`player-deck-creator-${index}`}
-                    isOpen={isCreationOpen}
-                    onOpenChange={setCreationOpen}
-                    player={selectedPlayer}
+                    isOpen={!!creationFlow}
+                    onOpenChange={(open) => !open && setCreationFlow(null)}
+                    player={
+                        creationFlow === "deck" ? selectedPlayer : undefined
+                    }
                     onPlayerCreated={handlePlayerChange}
                     onDeckCreated={handleDeckChange}
                 />

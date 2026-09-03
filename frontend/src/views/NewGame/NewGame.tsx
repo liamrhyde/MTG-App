@@ -27,6 +27,7 @@ export const NewGame = () => {
 
     const removeItem = (index: number) =>
         remove(newGameForm, { path: ["selectedDecks"], at: index });
+
     const changeItem = (index: number, selection: DeckSelectionIds) =>
         replace(newGameForm, {
             path: ["selectedDecks"],
