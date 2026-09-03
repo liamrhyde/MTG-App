@@ -12,7 +12,10 @@ class Repository:
         self.session = session
 
     def commit(self):
+        written = [*self.session.new, *self.session.dirty]
         self.session.commit()
+        for instance in written:
+            self.session.refresh(instance)
 
     def get_player(self, player_id: int):
         return self.session.get(Player, player_id)
@@ -22,8 +25,7 @@ class Repository:
 
     def create_player(self, player: Player):
         self.session.add(player)
-        self.session.commit()
-        self.session.refresh(player)
+        self.commit()
         return player
 
     def get_deck(self, deck_id: int):
@@ -34,8 +36,7 @@ class Repository:
 
     def create_deck(self, deck: Deck):
         self.session.add(deck)
-        self.session.commit()
-        self.session.refresh(deck)
+        self.commit()
         return deck
 
     def get_game(self, game_id: int):
