@@ -12,18 +12,21 @@ import {
     replace,
     useForm,
 } from "@formisch/react";
-import * as v from "valibot";
 import { useCallback } from "react";
 import { AlertCircleIcon } from "lucide-react";
-import { GameSelectionSchema } from "@/schemas";
+import { GameSelectionSchema, type CreateGame } from "@/schemas";
 import { navigate } from "wouter/use-browser-location";
 import { usePlayers } from "@/hooks/usePlayers";
 import { useDecks } from "@/hooks/useDecks";
+import { useCreateGame } from "@/hooks/useGames";
+import { Spinner } from "@/components/ui/spinner";
 
 export const NewGame = () => {
     const { players } = usePlayers();
     const { decks } = useDecks();
     const newGameForm = useForm({ schema: GameSelectionSchema });
+
+    const { createGame, isPending } = useCreateGame();
 
     const removeItem = (index: number) =>
         remove(newGameForm, { path: ["selectedDecks"], at: index });
@@ -41,11 +44,11 @@ export const NewGame = () => {
             initialInput: {},
         });
 
-    const handleSubmit = (
-        values: v.InferOutput<typeof GameSelectionSchema>,
-    ) => {
+    const handleSubmit = async (values: CreateGame) => {
         console.log(values);
-        navigate("/game/abcd");
+        await createGame(values).then((newGameId: string) =>
+            navigate(`/game/${newGameId}`),
+        );
     };
 
     const getFormErrors = useCallback(
@@ -136,7 +139,9 @@ export const NewGame = () => {
                             className="w-full md:flex-1"
                             size="lg"
                             type="submit"
+                            disabled={isPending}
                         >
+                            {isPending && <Spinner data-icon="inline-start" />}
                             Start Game
                         </Button>
                     </div>

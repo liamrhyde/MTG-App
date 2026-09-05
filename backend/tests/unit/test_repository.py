@@ -1,8 +1,9 @@
-from sqlmodel import Session
+import pytest
+from sqlmodel import Session, select
 
 from backend.repository import Repository
-from db.models import GameStatus
-from db.records import Deck, Game, Player
+from db.models import GameStatus, NewGameSelection
+from db.records import Deck, DeckGame, Game, Player
 
 
 class TestGetPlayer:
@@ -41,6 +42,33 @@ class TestGetPlayers:
     def test_returns_empty_player_list(self, repository: Repository):
         result = repository.get_players()
         assert len(result) == 0
+
+    def test_returns_players_matching_ids(
+        self, session: Session, repository: Repository
+    ):
+        player_1 = Player(name="Alice")
+        player_2 = Player(name="Bob")
+        session.add(player_1)
+        session.add(player_2)
+        session.commit()
+        session.refresh(player_1)
+        session.refresh(player_2)
+        assert player_1.id is not None
+
+        result = repository.get_players([player_1.id])
+
+        assert len(result) == 1
+        assert result[0].id == player_1.id
+
+    def test_raises_for_missing_id(self, session: Session, repository: Repository):
+        player = Player(name="Alice")
+        session.add(player)
+        session.commit()
+        session.refresh(player)
+        assert player.id is not None
+
+        with pytest.raises(ValueError):
+            repository.get_players([player.id, 999])
 
 
 class TestCreatePlayer:
@@ -127,6 +155,110 @@ class TestGetDecks:
     def test_returns_empty_deck_list(self, repository: Repository):
         result = repository.get_decks()
         assert len(result) == 0
+
+    def test_returns_decks_matching_ids(self, session: Session, repository: Repository):
+        owner = Player(name="Alice")
+        session.add(owner)
+        session.commit()
+        session.refresh(owner)
+        assert owner.id is not None
+
+        deck_1 = Deck(name="Mono Red", owner_id=owner.id)
+        deck_2 = Deck(name="Mono Blue", owner_id=owner.id)
+        session.add(deck_1)
+        session.add(deck_2)
+        session.commit()
+        session.refresh(deck_1)
+        session.refresh(deck_2)
+        assert deck_1.id is not None
+
+        result = repository.get_decks([deck_1.id])
+
+        assert len(result) == 1
+        assert result[0].id == deck_1.id
+
+    def test_raises_for_missing_id(self, session: Session, repository: Repository):
+        owner = Player(name="Alice")
+        session.add(owner)
+        session.commit()
+        session.refresh(owner)
+        assert owner.id is not None
+
+        deck = Deck(name="Mono Red", owner_id=owner.id)
+        session.add(deck)
+        session.commit()
+        session.refresh(deck)
+        assert deck.id is not None
+
+        with pytest.raises(ValueError):
+            repository.get_decks([deck.id, 999])
+
+
+class TestCreateGame:
+    def _make_player_and_deck(self, session: Session, player_name: str, deck_name: str):
+        player = Player(name=player_name)
+        session.add(player)
+        session.commit()
+        session.refresh(player)
+        assert player.id is not None
+
+        deck = Deck(name=deck_name, owner_id=player.id)
+        session.add(deck)
+        session.commit()
+        session.refresh(deck)
+        assert deck.id is not None
+
+        return player, deck
+
+    def test_creates_game_with_deck_games(
+        self, session: Session, repository: Repository
+    ):
+        player_1, deck_1 = self._make_player_and_deck(session, "Alice", "Mono Red")
+        player_2, deck_2 = self._make_player_and_deck(session, "Bob", "Mono Blue")
+        assert player_1.id is not None
+        assert player_2.id is not None
+        assert deck_1.id is not None
+        assert deck_2.id is not None
+
+        selections = [
+            NewGameSelection(deck_id=deck_1.id, player_id=player_1.id),
+            NewGameSelection(deck_id=deck_2.id, player_id=player_2.id),
+        ]
+
+        game = repository.create_game(selections)
+
+        assert game.id is not None
+        assert game.player_count == 2
+        assert set(game.state.keys()) == {deck_1.id, deck_2.id}
+
+        deck_games = session.exec(
+            select(DeckGame).where(DeckGame.game_id == game.id)
+        ).all()
+        assert len(deck_games) == 2
+
+        by_deck_id = {dg.deck_id: dg for dg in deck_games}
+        assert by_deck_id[deck_1.id].player_id == player_1.id
+        assert by_deck_id[deck_2.id].player_id == player_2.id
+
+    def test_raises_for_missing_player_id(
+        self, session: Session, repository: Repository
+    ):
+        _, deck = self._make_player_and_deck(session, "Alice", "Mono Red")
+        assert deck.id is not None
+
+        selections = [NewGameSelection(deck_id=deck.id, player_id=999)]
+
+        with pytest.raises(ValueError):
+            repository.create_game(selections)
+
+    def test_raises_for_missing_deck_id(self, session: Session, repository: Repository):
+        player, _ = self._make_player_and_deck(session, "Alice", "Mono Red")
+        assert player.id is not None
+
+        selections = [NewGameSelection(deck_id=999, player_id=player.id)]
+
+        with pytest.raises(ValueError):
+            repository.create_game(selections)
 
 
 class TestGetGame:

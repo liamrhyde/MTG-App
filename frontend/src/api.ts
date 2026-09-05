@@ -1,6 +1,10 @@
-import type { Player, CreatePlayer, Deck, CreateDeck } from "@/schemas";
-
-export type { Player, CreatePlayer, Deck, CreateDeck };
+import type {
+    Player,
+    CreatePlayer,
+    Deck,
+    CreateDeck,
+    CreateGame,
+} from "@/schemas";
 
 const BASE_URL = "http://localhost:8000";
 
@@ -37,4 +41,13 @@ export const createDeck = async (input: CreateDeck): Promise<Deck> => {
         body: JSON.stringify(input),
     });
     return json<Deck>(res);
+};
+
+export const createGame = async (input: CreateGame): Promise<string> => {
+    const res = await fetch(`${BASE_URL}/game`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+    });
+    return json<string>(res);
 };

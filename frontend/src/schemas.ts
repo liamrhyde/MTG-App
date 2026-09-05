@@ -43,6 +43,8 @@ export const GameSelectionSchema = v.object({
     ),
 });
 
+export type CreateGame = v.InferOutput<typeof GameSelectionSchema>;
+
 /* Live game state */
 
 export interface DeckGameState {
