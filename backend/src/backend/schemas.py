@@ -1,25 +1,62 @@
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from collections.abc import Sequence
 
-from db.models import DeckHealth
-from db.records import Deck, Player
+from db.models import CamelBaseModel, DeckHealth, GameStatus
+
+__all__ = [
+    "Deck",
+    "DeckCreate",
+    "Game",
+    "GameDataResponse",
+    "GameMember",
+    "NewGameData",
+    "NewGameSelection",
+    "Player",
+    "PlayerCreate",
+]
 
 
-class CamelBaseSchema(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=to_camel,
-        populate_by_name=True,
-        from_attributes=True,
-    )
+class Player(CamelBaseModel):
+    id: int
+    name: str
 
 
-class GameMember(CamelBaseSchema):
+class PlayerCreate(CamelBaseModel):
+    name: str
+
+
+class Deck(CamelBaseModel):
+    id: int
+    name: str
+    owner_id: int
+
+
+class DeckCreate(CamelBaseModel):
+    name: str
+    owner_id: int
+
+
+class Game(CamelBaseModel):
+    id: int
+    status: GameStatus
+    player_count: int | None
+
+
+class NewGameSelection(CamelBaseModel):
     deck_id: int
-    deck_name: Deck
-    player_name: Player
+    player_id: int
 
 
-class GameDataResponse(CamelBaseSchema):
+class NewGameData(CamelBaseModel):
+    selected_decks: Sequence[NewGameSelection]
+
+
+class GameMember(CamelBaseModel):
+    deck_id: int
+    deck_name: str
+    player_name: str
+
+
+class GameDataResponse(CamelBaseModel):
     game_id: int
     game_members: dict[int, GameMember]
     game_state: dict[int, DeckHealth]

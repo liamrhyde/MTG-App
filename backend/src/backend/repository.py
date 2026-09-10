@@ -5,8 +5,8 @@ from fastapi import Depends
 from sqlmodel import Session, col, select
 
 from db import SessionDep
-from db.models import NewGameSelection
-from db.records import Deck, DeckGame, Game, Player
+from db.models import DeckPlayerSelection
+from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
 
 
 class Repository:
@@ -20,12 +20,12 @@ class Repository:
             self.session.refresh(instance)
 
     def get_player(self, player_id: int):
-        return self.session.get(Player, player_id)
+        return self.session.get(PlayerRecord, player_id)
 
     def get_players(self, ids: Sequence[int] | None = None):
-        query = select(Player)
+        query = select(PlayerRecord)
         if ids:
-            query = query.where(col(Player.id).in_(ids))
+            query = query.where(col(PlayerRecord.id).in_(ids))
         players = self.session.exec(query).all()
         if ids is not None:
             missing = set(ids) - {p.id for p in players}
@@ -33,18 +33,18 @@ class Repository:
                 raise ValueError(f"Players not found: {sorted(missing)}")
         return players
 
-    def create_player(self, player: Player):
+    def create_player(self, player: PlayerRecord):
         self.session.add(player)
         self.commit()
         return player
 
     def get_deck(self, deck_id: int):
-        return self.session.get(Deck, deck_id)
+        return self.session.get(DeckRecord, deck_id)
 
     def get_decks(self, ids: Sequence[int] | None = None):
-        query = select(Deck)
+        query = select(DeckRecord)
         if ids:
-            query = query.where(col(Deck.id).in_(ids))
+            query = query.where(col(DeckRecord.id).in_(ids))
         decks = self.session.exec(query).all()
         if ids is not None:
             missing = set(ids) - {d.id for d in decks}
@@ -52,15 +52,15 @@ class Repository:
                 raise ValueError(f"Decks not found: {sorted(missing)}")
         return decks
 
-    def create_deck(self, deck: Deck):
+    def create_deck(self, deck: DeckRecord):
         self.session.add(deck)
         self.commit()
         return deck
 
     def get_game(self, game_id: int):
-        return self.session.get(Game, game_id)
+        return self.session.get(GameRecord, game_id)
 
-    def create_game(self, game_selection: Sequence[NewGameSelection]):
+    def create_game(self, game_selection: Sequence[DeckPlayerSelection]):
         deck_ids = [s.deck_id for s in game_selection]
         decks_by_id = {d.id: d for d in self.get_decks(deck_ids)}
 
@@ -71,7 +71,7 @@ class Repository:
             (decks_by_id[s.deck_id], players_by_id[s.player_id]) for s in game_selection
         ]
 
-        game = Game(player_count=len(game_selection))
+        game = GameRecord(player_count=len(game_selection))
         game.init_game_state(deck_ids)
 
         for deck, player in game_models:
@@ -81,11 +81,13 @@ class Repository:
         self.commit()
         return game
 
-    def create_deck_game(self, game: Game, deck: Deck, player: Player):
-        return self.session.add(DeckGame(game=game, deck=deck, player=player))
+    def create_deck_game(
+        self, game: GameRecord, deck: DeckRecord, player: PlayerRecord
+    ):
+        return self.session.add(DeckGameRecord(game=game, deck=deck, player=player))
 
     def get_games(self):
-        return self.session.exec(select(Game)).all()
+        return self.session.exec(select(GameRecord)).all()
 
 
 def get_repository(session: SessionDep):

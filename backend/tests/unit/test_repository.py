@@ -2,13 +2,13 @@ import pytest
 from sqlmodel import Session, select
 
 from backend.repository import Repository
-from db.models import GameStatus, NewGameSelection
-from db.records import Deck, DeckGame, Game, Player
+from db.models import DeckPlayerSelection, GameStatus
+from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
 
 
 class TestGetPlayer:
     def test_returns_existing_player(self, session: Session, repository: Repository):
-        player = Player(name="Alice")
+        player = PlayerRecord(name="Alice")
         session.add(player)
         session.commit()
         session.refresh(player)
@@ -26,8 +26,8 @@ class TestGetPlayer:
 
 class TestGetPlayers:
     def test_returns_all_players(self, session: Session, repository: Repository):
-        player_1 = Player(name="Alice")
-        player_2 = Player(name="Bob")
+        player_1 = PlayerRecord(name="Alice")
+        player_2 = PlayerRecord(name="Bob")
         session.add(player_1)
         session.add(player_2)
         session.commit()
@@ -46,8 +46,8 @@ class TestGetPlayers:
     def test_returns_players_matching_ids(
         self, session: Session, repository: Repository
     ):
-        player_1 = Player(name="Alice")
-        player_2 = Player(name="Bob")
+        player_1 = PlayerRecord(name="Alice")
+        player_2 = PlayerRecord(name="Bob")
         session.add(player_1)
         session.add(player_2)
         session.commit()
@@ -61,7 +61,7 @@ class TestGetPlayers:
         assert result[0].id == player_1.id
 
     def test_raises_for_missing_id(self, session: Session, repository: Repository):
-        player = Player(name="Alice")
+        player = PlayerRecord(name="Alice")
         session.add(player)
         session.commit()
         session.refresh(player)
@@ -73,27 +73,27 @@ class TestGetPlayers:
 
 class TestCreatePlayer:
     def test_create_player(self, repository: Repository, session: Session):
-        player = Player(name="Alfred")
+        player = PlayerRecord(name="Alfred")
 
         response = repository.create_player(player)
 
         assert response.id is not None
         assert response.name == "Alfred"
 
-        raw_result = session.get(Player, response.id)
+        raw_result = session.get(PlayerRecord, response.id)
         assert raw_result
         assert raw_result.name == "Alfred"
 
 
 class TestCreateDeck:
     def test_create_deck(self, repository: Repository, session: Session):
-        owner = Player(name="Alfred")
+        owner = PlayerRecord(name="Alfred")
         session.add(owner)
         session.commit()
         session.refresh(owner)
         assert owner.id is not None
 
-        deck = Deck(name="Mono Red", owner_id=owner.id)
+        deck = DeckRecord(name="Mono Red", owner_id=owner.id)
 
         response = repository.create_deck(deck)
 
@@ -101,7 +101,7 @@ class TestCreateDeck:
         assert response.name == "Mono Red"
         assert response.owner_id == owner.id
 
-        raw_result = session.get(Deck, response.id)
+        raw_result = session.get(DeckRecord, response.id)
         assert raw_result
         assert raw_result.name == "Mono Red"
         assert raw_result.owner_id == owner.id
@@ -109,13 +109,13 @@ class TestCreateDeck:
 
 class TestGetDeck:
     def test_returns_existing_deck(self, session: Session, repository: Repository):
-        owner = Player(name="Alice")
+        owner = PlayerRecord(name="Alice")
         session.add(owner)
         session.commit()
         session.refresh(owner)
         assert owner.id is not None
 
-        deck = Deck(name="Mono Red", owner_id=owner.id)
+        deck = DeckRecord(name="Mono Red", owner_id=owner.id)
         session.add(deck)
         session.commit()
         session.refresh(deck)
@@ -133,14 +133,14 @@ class TestGetDeck:
 
 class TestGetDecks:
     def test_returns_all_decks(self, session: Session, repository: Repository):
-        owner = Player(name="Alice")
+        owner = PlayerRecord(name="Alice")
         session.add(owner)
         session.commit()
         session.refresh(owner)
         assert owner.id is not None
 
-        deck_1 = Deck(name="Mono Red", owner_id=owner.id)
-        deck_2 = Deck(name="Mono Blue", owner_id=owner.id)
+        deck_1 = DeckRecord(name="Mono Red", owner_id=owner.id)
+        deck_2 = DeckRecord(name="Mono Blue", owner_id=owner.id)
         session.add(deck_1)
         session.add(deck_2)
         session.commit()
@@ -157,14 +157,14 @@ class TestGetDecks:
         assert len(result) == 0
 
     def test_returns_decks_matching_ids(self, session: Session, repository: Repository):
-        owner = Player(name="Alice")
+        owner = PlayerRecord(name="Alice")
         session.add(owner)
         session.commit()
         session.refresh(owner)
         assert owner.id is not None
 
-        deck_1 = Deck(name="Mono Red", owner_id=owner.id)
-        deck_2 = Deck(name="Mono Blue", owner_id=owner.id)
+        deck_1 = DeckRecord(name="Mono Red", owner_id=owner.id)
+        deck_2 = DeckRecord(name="Mono Blue", owner_id=owner.id)
         session.add(deck_1)
         session.add(deck_2)
         session.commit()
@@ -178,13 +178,13 @@ class TestGetDecks:
         assert result[0].id == deck_1.id
 
     def test_raises_for_missing_id(self, session: Session, repository: Repository):
-        owner = Player(name="Alice")
+        owner = PlayerRecord(name="Alice")
         session.add(owner)
         session.commit()
         session.refresh(owner)
         assert owner.id is not None
 
-        deck = Deck(name="Mono Red", owner_id=owner.id)
+        deck = DeckRecord(name="Mono Red", owner_id=owner.id)
         session.add(deck)
         session.commit()
         session.refresh(deck)
@@ -196,13 +196,13 @@ class TestGetDecks:
 
 class TestCreateGame:
     def _make_player_and_deck(self, session: Session, player_name: str, deck_name: str):
-        player = Player(name=player_name)
+        player = PlayerRecord(name=player_name)
         session.add(player)
         session.commit()
         session.refresh(player)
         assert player.id is not None
 
-        deck = Deck(name=deck_name, owner_id=player.id)
+        deck = DeckRecord(name=deck_name, owner_id=player.id)
         session.add(deck)
         session.commit()
         session.refresh(deck)
@@ -221,8 +221,8 @@ class TestCreateGame:
         assert deck_2.id is not None
 
         selections = [
-            NewGameSelection(deck_id=deck_1.id, player_id=player_1.id),
-            NewGameSelection(deck_id=deck_2.id, player_id=player_2.id),
+            DeckPlayerSelection(deck_id=deck_1.id, player_id=player_1.id),
+            DeckPlayerSelection(deck_id=deck_2.id, player_id=player_2.id),
         ]
 
         game = repository.create_game(selections)
@@ -232,7 +232,7 @@ class TestCreateGame:
         assert set(game.state.keys()) == {deck_1.id, deck_2.id}
 
         deck_games = session.exec(
-            select(DeckGame).where(DeckGame.game_id == game.id)
+            select(DeckGameRecord).where(DeckGameRecord.game_id == game.id)
         ).all()
         assert len(deck_games) == 2
 
@@ -246,7 +246,7 @@ class TestCreateGame:
         _, deck = self._make_player_and_deck(session, "Alice", "Mono Red")
         assert deck.id is not None
 
-        selections = [NewGameSelection(deck_id=deck.id, player_id=999)]
+        selections = [DeckPlayerSelection(deck_id=deck.id, player_id=999)]
 
         with pytest.raises(ValueError):
             repository.create_game(selections)
@@ -255,7 +255,7 @@ class TestCreateGame:
         player, _ = self._make_player_and_deck(session, "Alice", "Mono Red")
         assert player.id is not None
 
-        selections = [NewGameSelection(deck_id=999, player_id=player.id)]
+        selections = [DeckPlayerSelection(deck_id=999, player_id=player.id)]
 
         with pytest.raises(ValueError):
             repository.create_game(selections)
@@ -264,7 +264,7 @@ class TestCreateGame:
 class TestGetGame:
     def test_returns_existing_game(self, session: Session, repository: Repository):
         # TODO: Improve Game fixture
-        game = Game()
+        game = GameRecord()
 
         session.add(game)
         session.commit()
@@ -283,8 +283,8 @@ class TestGetGame:
 
 class TestGetGames:
     def test_returns_all_games(self, session: Session, repository: Repository):
-        game_1 = Game(player_count=4)
-        game_2 = Game(player_count=2, status=GameStatus.COMPLETED)
+        game_1 = GameRecord(player_count=4)
+        game_2 = GameRecord(player_count=2, status=GameStatus.COMPLETED)
         session.add(game_1)
         session.add(game_2)
         session.commit()
