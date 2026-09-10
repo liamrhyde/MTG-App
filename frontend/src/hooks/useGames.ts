@@ -1,5 +1,5 @@
-import { createGame } from "@/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createGame, getGame } from "@/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const useCreateGame = () => {
     const queryClient = useQueryClient();
@@ -20,4 +20,16 @@ const useCreateGame = () => {
     } as const;
 };
 
-export { useCreateGame };
+const useGame = (gameId: string) => {
+    const query = useQuery({
+        queryKey: ["game", gameId],
+        queryFn: () => getGame(gameId),
+    });
+    return {
+        gameData: query.data,
+        isLoading: query.isLoading || query.isFetching,
+        error: query.error,
+    };
+};
+
+export { useCreateGame, useGame };

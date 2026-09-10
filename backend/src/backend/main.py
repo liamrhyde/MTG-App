@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.schemas import GameDataResponse
 from db import init_db
 from db.models import NewGameData
 from db.records import Deck, Player
@@ -58,9 +59,15 @@ def create_deck(deck: Deck, repository: RepositoryDep):
     return repository.create_deck(deck)
 
 
-@app.get("/game/{game_id}")
-def get_game(repository: RepositoryDep, game_id: int):
-    return repository.get_game(game_id)
+@app.get("/game/{game_id}", response_model=GameDataResponse)
+def get_game_data(repository: RepositoryDep, game_id: int):
+    game = repository.get_game(game_id)
+    if not game or game.id is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+    game_members_by_id = {m.deck_id: m for m in game.game_members}
+    return GameDataResponse(
+        game_id=game.id, game_members=game_members_by_id, game_state=game.state
+    )
 
 
 @app.post("/game")

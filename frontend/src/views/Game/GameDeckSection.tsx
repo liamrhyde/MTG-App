@@ -2,15 +2,15 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Crown, Heart, Radiation, X } from "lucide-react";
-import type { Deck, Player } from "@/schemas";
+import type { GameDeck } from "@/schemas";
 import type { DeckGameState, DeckHealthChange } from "@/schemas";
 import { HealthDisplay } from "@/components/HealthDisplay";
 import { CommanderDamageGrid } from "@/components/CommanderDamageGrid";
 import { ButtonGroup } from "@/components/ui/button-group";
 
 interface GameDeckSectionProps {
-    player: Player;
-    deck: Deck;
+    gameDeckId: number;
+    memberData: Record<number, GameDeck>;
     deckGameState: DeckGameState;
     deckHealthChange: DeckHealthChange | undefined;
     selectedDeckId: number | null;
@@ -25,8 +25,8 @@ interface GameDeckSectionProps {
 }
 
 export const GameDeckSection = ({
-    deck,
-    player,
+    gameDeckId,
+    memberData,
     deckGameState,
     deckHealthChange,
     selectedDeckId,
@@ -35,24 +35,25 @@ export const GameDeckSection = ({
     onSubmit,
     onCancel,
 }: GameDeckSectionProps) => {
-    const deckId = player.id;
-    const isSelected = selectedDeckId === deckId;
+    const isSelected = selectedDeckId === gameDeckId;
+
+    const gameDeck = memberData[gameDeckId] ?? {};
 
     const handleHealthChange = (value: number) =>
-        onHealthStateChange?.(deckId, "health", value);
+        onHealthStateChange?.(gameDeckId, "health", value);
 
     const handleCommanderChange = (value: number) => {
         const delta = value - (deckHealthChange?.commander ?? 0);
-        onHealthStateChange?.(deckId, "commander", value);
+        onHealthStateChange?.(gameDeckId, "commander", value);
         onHealthStateChange?.(
-            deckId,
+            gameDeckId,
             "health",
             (deckHealthChange?.health ?? 0) - delta,
         );
     };
 
     const handlePoisonChange = (value: number) =>
-        onHealthStateChange?.(deckId, "poison", value);
+        onHealthStateChange?.(gameDeckId, "poison", value);
 
     return (
         <Card
@@ -64,13 +65,15 @@ export const GameDeckSection = ({
                     ? "bg-accent ring-2 ring-primary"
                     : "bg-muted/30 hover:bg-muted/50",
             )}
-            onClick={() => onSelect(deckId)}
+            onClick={() => onSelect(gameDeckId)}
         >
             <CardHeader className="flex justify-between items-center m-0">
                 <div className="flex gap-1 items-center min-h-7">
-                    <p className="font-semibold truncate">{player.name}</p>
+                    <p className="font-semibold truncate">
+                        {gameDeck.playerName}
+                    </p>
                     <p className="text-sm text-muted-foreground truncate">
-                        {deck.name}
+                        {gameDeck.deckName}
                     </p>
                 </div>
                 <div className="flex flex-1 justify-end">
@@ -118,7 +121,9 @@ export const GameDeckSection = ({
                     />
                 ) : (
                     <CommanderDamageGrid
+                        currentDeckId={gameDeckId}
                         commanderDamage={deckGameState.commander}
+                        gameMembers={memberData}
                     />
                 )}
                 <HealthDisplay

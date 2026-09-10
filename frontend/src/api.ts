@@ -4,6 +4,7 @@ import type {
     Deck,
     CreateDeck,
     CreateGame,
+    GameData,
 } from "@/schemas";
 
 const BASE_URL = "http://localhost:8000";
@@ -50,4 +51,9 @@ export const createGame = async (input: CreateGame): Promise<string> => {
         body: JSON.stringify(input),
     });
     return json<string>(res);
+};
+
+export const getGame = async (input: string): Promise<GameData> => {
+    const res = await fetch(`${BASE_URL}/game/${input}`);
+    return json<GameData>(res);
 };

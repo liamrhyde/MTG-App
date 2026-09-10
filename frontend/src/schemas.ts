@@ -56,6 +56,18 @@ export interface DeckGameState {
 
 export type GameState = Record<number, DeckGameState>;
 
+export interface GameDeck {
+    deckId: number;
+    playerName: string;
+    deckName: string;
+}
+
+export interface GameData {
+    gameId: number;
+    gameMembers: Record<number, GameDeck>;
+    gameState: GameState;
+}
+
 export interface DeckHealthChange {
     health: number;
     poison: number;

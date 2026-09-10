@@ -7,10 +7,10 @@ from sqlmodel import SQLModel
 
 __all__ = [
     "CamelBaseModel",
+    "DeckHealth",
     "GameStatus",
     "NewGameData",
     "NewGameSelection",
-    "PlayerHealth",
 ]
 
 
@@ -28,10 +28,11 @@ class GameStatus(str, Enum):
     COMPLETED = "completed"
 
 
-class PlayerHealth(BaseModel):
+class DeckHealth(BaseModel):
     model_config = ConfigDict(frozen=True)
+    deck_id: int
     health: int = Field(default=40)
-    commander: int = Field(default=0)
+    commander: dict[int, int] = Field(default_factory=dict)
     poison: int = Field(default=0)
 
 
