@@ -6,7 +6,9 @@ from pydantic.alias_generators import to_camel
 __all__ = [
     "CamelBaseModel",
     "DeckHealth",
+    "DeckHealthChange",
     "DeckPlayerSelection",
+    "GameStateChange",
     "GameStatus",
 ]
 
@@ -52,3 +54,18 @@ class DeckPlayerSelection(BaseModel):
 
     deck_id: int
     player_id: int
+
+
+class DeckHealthChange(CamelBaseModel):
+    """A pending delta to apply to one target deck's `DeckHealth`."""
+
+    health: int = 0
+    poison: int = 0
+    commander: int = 0
+
+
+class GameStateChange(CamelBaseModel):
+    """A batch of `DeckHealthChange`s dealt by one source deck to its targets."""
+
+    source_deck: int
+    targets: dict[int, DeckHealthChange]

@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlmodel import Session, col, select
 
 from db import SessionDep
-from db.models import DeckPlayerSelection
+from db.models import DeckPlayerSelection, GameStateChange
 from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
 
 
@@ -88,6 +88,16 @@ class Repository:
 
     def get_games(self):
         return self.session.exec(select(GameRecord)).all()
+
+    def apply_game_state_change(
+        self, game_id: int, change: GameStateChange
+    ) -> GameRecord | None:
+        game = self.get_game(game_id)
+        if game is None:
+            return None
+        game.apply_state_change(change)
+        self.commit()
+        return game
 
 
 def get_repository(session: SessionDep):

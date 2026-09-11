@@ -1,5 +1,6 @@
-import { createGame, getGame } from "@/api";
+import { createGame, getGame, updateGameState } from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { GameData, GameStateChange } from "@/schemas";
 
 const useCreateGame = () => {
     const queryClient = useQueryClient();
@@ -32,4 +33,23 @@ const useGame = (gameId: string) => {
     };
 };
 
-export { useCreateGame, useGame };
+const useUpdateGameState = (gameId: string) => {
+    const queryClient = useQueryClient();
+    const updateGameStateMutation = useMutation({
+        mutationFn: (change: GameStateChange) =>
+            updateGameState(gameId, change),
+        onSuccess: (newState) => {
+            queryClient.setQueryData<GameData>(["game", gameId], (current) =>
+                current ? { ...current, gameState: newState } : current,
+            );
+        },
+    });
+
+    return {
+        updateGameState: updateGameStateMutation.mutateAsync,
+        isPending: updateGameStateMutation.isPending,
+        error: updateGameStateMutation.error,
+    } as const;
+};
+
+export { useCreateGame, useGame, useUpdateGameState };

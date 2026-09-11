@@ -5,6 +5,8 @@ import type {
     CreateDeck,
     CreateGame,
     GameData,
+    GameState,
+    GameStateChange,
 } from "@/schemas";
 
 const BASE_URL = "http://localhost:8000";
@@ -56,4 +58,16 @@ export const createGame = async (input: CreateGame): Promise<string> => {
 export const getGame = async (input: string): Promise<GameData> => {
     const res = await fetch(`${BASE_URL}/game/${input}`);
     return json<GameData>(res);
+};
+
+export const updateGameState = async (
+    gameId: string,
+    change: GameStateChange,
+): Promise<GameState> => {
+    const res = await fetch(`${BASE_URL}/game/${gameId}/state`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(change),
+    });
+    return json<GameState>(res);
 };

@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { GameDeckSection } from "@/views/Game/GameDeckSection";
 import type { GameStateChange, DeckHealthChange } from "@/schemas";
-import { useGame } from "@/hooks/useGames";
+import { useGame, useUpdateGameState } from "@/hooks/useGames";
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
     const [selectedDeckId, setSelectedDeckId] = useState<number | null>(null);
 
     const { gameData } = useGame(gameId);
+    const { updateGameState } = useUpdateGameState(gameId);
 
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
@@ -46,7 +47,10 @@ export const GameView = () => {
         });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        if (gameStateChange) {
+            await updateGameState(gameStateChange);
+        }
         setSelectedDeckId(null);
         setGameStateChange(null);
     };

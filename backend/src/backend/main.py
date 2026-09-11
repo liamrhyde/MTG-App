@@ -14,7 +14,7 @@ from backend.schemas import (
     PlayerCreate,
 )
 from db import init_db
-from db.models import DeckPlayerSelection
+from db.models import DeckHealth, DeckPlayerSelection, GameStateChange
 from db.records import DeckRecord, PlayerRecord
 
 from .repository import RepositoryDep
@@ -107,3 +107,11 @@ def create_game(repository: RepositoryDep, game_data: NewGameData):
 def get_games(repository: RepositoryDep):
     games = repository.get_games()
     return {g.id: g for g in games}
+
+
+@app.patch("/game/{game_id}/state", response_model=dict[int, DeckHealth])
+def update_game_state(repository: RepositoryDep, game_id: int, change: GameStateChange):
+    game = repository.apply_game_state_change(game_id, change)
+    if game is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return game.state

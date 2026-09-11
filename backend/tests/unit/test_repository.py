@@ -2,7 +2,7 @@ import pytest
 from sqlmodel import Session, select
 
 from backend.repository import Repository
-from db.models import DeckPlayerSelection, GameStatus
+from db.models import DeckHealthChange, DeckPlayerSelection, GameStateChange, GameStatus
 from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
 
 
@@ -299,3 +299,116 @@ class TestGetGames:
     def test_returns_empty_game_list(self, repository: Repository):
         result = repository.get_games()
         assert len(result) == 0
+
+
+class TestApplyGameStateChange:
+    def _make_game(
+        self, session: Session, repository: Repository
+    ) -> tuple[int, int, int]:
+        player_1 = PlayerRecord(name="Alice")
+        player_2 = PlayerRecord(name="Bob")
+        session.add(player_1)
+        session.add(player_2)
+        session.commit()
+        session.refresh(player_1)
+        session.refresh(player_2)
+        assert player_1.id is not None
+        assert player_2.id is not None
+
+        deck_1 = DeckRecord(name="Mono Red", owner_id=player_1.id)
+        deck_2 = DeckRecord(name="Mono Blue", owner_id=player_2.id)
+        session.add(deck_1)
+        session.add(deck_2)
+        session.commit()
+        session.refresh(deck_1)
+        session.refresh(deck_2)
+        assert deck_1.id is not None
+        assert deck_2.id is not None
+
+        game = repository.create_game(
+            [
+                DeckPlayerSelection(deck_id=deck_1.id, player_id=player_1.id),
+                DeckPlayerSelection(deck_id=deck_2.id, player_id=player_2.id),
+            ]
+        )
+        assert game.id is not None
+
+        return game.id, deck_1.id, deck_2.id
+
+    def test_applies_health_poison_and_commander_deltas(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-3, poison=1, commander=3)},
+        )
+
+        result = repository.apply_game_state_change(game_id, change)
+
+        assert result is not None
+        assert result.state[deck_2_id].health == 37
+        assert result.state[deck_2_id].poison == 1
+        assert result.state[deck_2_id].commander == {deck_1_id: 3}
+        # Untouched deck is unaffected
+        assert result.state[deck_1_id].health == 40
+
+    def test_commander_damage_accumulates_across_calls(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(commander=3)},
+        )
+        repository.apply_game_state_change(game_id, change)
+        result = repository.apply_game_state_change(game_id, change)
+
+        assert result is not None
+        assert result.state[deck_2_id].commander == {deck_1_id: 6}
+
+    def test_self_targeting_is_allowed(self, session: Session, repository: Repository):
+        game_id, deck_1_id, _ = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_1_id: DeckHealthChange(health=-1, poison=1)},
+        )
+
+        result = repository.apply_game_state_change(game_id, change)
+
+        assert result is not None
+        assert result.state[deck_1_id].health == 39
+        assert result.state[deck_1_id].poison == 1
+
+    def test_returns_none_for_missing_game(self, repository: Repository):
+        change = GameStateChange(source_deck=1, targets={})
+        assert repository.apply_game_state_change(999, change) is None
+
+    def test_raises_for_unknown_target_deck_id(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, _ = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={999: DeckHealthChange(health=-1)},
+        )
+
+        with pytest.raises(ValueError):
+            repository.apply_game_state_change(game_id, change)
+
+    def test_raises_for_unknown_source_deck_id(
+        self, session: Session, repository: Repository
+    ):
+        game_id, _, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=999,
+            targets={deck_2_id: DeckHealthChange(health=-1)},
+        )
+
+        with pytest.raises(ValueError):
+            repository.apply_game_state_change(game_id, change)
