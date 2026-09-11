@@ -7,12 +7,13 @@ import {
     FieldArray,
     Form,
     getErrors,
+    getInput,
     insert,
     remove,
     replace,
     useForm,
 } from "@formisch/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { GameSelectionSchema, type CreateGame } from "@/schemas";
 import { navigate } from "wouter/use-browser-location";
@@ -45,7 +46,6 @@ export const NewGame = () => {
         });
 
     const handleSubmit = async (values: CreateGame) => {
-        console.log(values);
         await createGame(values).then((newGameId: string) =>
             navigate(`/game/${newGameId}`),
         );
@@ -63,6 +63,17 @@ export const NewGame = () => {
     const fieldArrayErrors = getErrors(newGameForm, {
         path: ["selectedDecks"],
     });
+
+    const gameSelection = getInput(newGameForm, { path: ["selectedDecks"] });
+    const unavailableDeckIds = useMemo(
+        () => gameSelection.map((s) => s.deckId).filter((d) => d !== undefined),
+        [gameSelection],
+    );
+    const unavailablePlayerIds = useMemo(
+        () =>
+            gameSelection.map((s) => s.playerId).filter((p) => p !== undefined),
+        [gameSelection],
+    );
 
     return (
         <div className="flex flex-col h-screen bg-background">
@@ -94,6 +105,12 @@ export const NewGame = () => {
                                                             field.input as
                                                                 | DeckSelectionIds
                                                                 | undefined
+                                                        }
+                                                        unavailableDeckIds={
+                                                            unavailableDeckIds
+                                                        }
+                                                        unavailablePlayerIds={
+                                                            unavailablePlayerIds
                                                         }
                                                         getFormErrors={
                                                             getFormErrors

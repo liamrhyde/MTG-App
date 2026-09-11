@@ -17,6 +17,8 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { PlayerDeckCreationDialog } from "./PlayerDeckCreationDialog/PlayerDeckCreationDialog";
 
+const EMPTY_ARRAY = [] as const;
+
 export interface DeckSelectionIds {
     playerId?: number;
     deckId?: number;
@@ -29,6 +31,8 @@ interface DeckSelectorProps {
     decksById?: Record<string, Deck>;
     onRemove?: (index: number) => void;
     index: number;
+    unavailableDeckIds?: readonly number[];
+    unavailablePlayerIds?: readonly number[];
     getFormErrors: (
         index: number,
         fieldName: "playerId" | "deckId",
@@ -42,6 +46,8 @@ export const DeckSelector = ({
     decksById,
     onRemove,
     index,
+    unavailableDeckIds = EMPTY_ARRAY,
+    unavailablePlayerIds = EMPTY_ARRAY,
     getFormErrors,
 }: DeckSelectorProps) => {
     const selectedPlayer = value?.playerId
@@ -125,6 +131,9 @@ export const DeckSelector = ({
                                         <ComboboxItem
                                             key={player.id}
                                             value={player.id}
+                                            disabled={unavailablePlayerIds.includes(
+                                                player.id,
+                                            )}
                                         >
                                             {player.name}
                                         </ComboboxItem>
@@ -193,6 +202,9 @@ export const DeckSelector = ({
                                                 <ComboboxItem
                                                     key={deck.id}
                                                     value={deck.id}
+                                                    disabled={unavailableDeckIds.includes(
+                                                        deck.id,
+                                                    )}
                                                 >
                                                     {deck.name}
                                                 </ComboboxItem>

@@ -9,7 +9,7 @@ export const GameView = () => {
     const [selectedDeckId, setSelectedDeckId] = useState<number | null>(null);
 
     const { gameData } = useGame(gameId);
-    console.log(gameData);
+
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
 
@@ -58,9 +58,6 @@ export const GameView = () => {
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
-            <span className="absolute top-2 left-3 z-10 text-xs text-muted-foreground">
-                Game {gameId}
-            </span>
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
                 {gameData &&
                     Object.entries(gameData.gameMembers).map(
