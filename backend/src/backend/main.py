@@ -8,6 +8,7 @@ from backend.schemas import (
     DeckCreate,
     Game,
     GameDataResponse,
+    GameMember,
     NewGameData,
     Player,
     PlayerCreate,
@@ -72,7 +73,12 @@ def get_game_data(repository: RepositoryDep, game_id: int):
     game = repository.get_game(game_id)
     if not game or game.id is None:
         raise HTTPException(status_code=404, detail="Game not found")
-    game_members_by_id = {m.deck_id: m for m in game.game_members}
+    game_members_by_id = {
+        m.deck_id: GameMember(
+            deck_id=m.deck_id, deck_name=m.deck.name, player_name=m.player.name
+        )
+        for m in game.game_members
+    }
     return GameDataResponse(
         game_id=game.id, game_members=game_members_by_id, game_state=game.state
     )
