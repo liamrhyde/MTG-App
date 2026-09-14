@@ -62,10 +62,9 @@ export interface GameDeck {
     deckName: string;
 }
 
-export interface GameData {
+export interface GameDetail {
     gameId: number;
     gameMembers: Record<number, GameDeck>;
-    gameState: GameState;
 }
 
 export interface DeckHealthChange {

@@ -1,6 +1,11 @@
-import { createGame, getGame, updateGameState } from "@/api";
+import {
+    createGame,
+    getGameDetail,
+    getGameState,
+    updateGameState,
+} from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GameData, GameStateChange } from "@/schemas";
+import type { GameState, GameStateChange } from "@/schemas";
 
 const useCreateGame = () => {
     const queryClient = useQueryClient();
@@ -21,13 +26,25 @@ const useCreateGame = () => {
     } as const;
 };
 
-const useGame = (gameId: string) => {
+const useGameDetail = (gameId: string) => {
     const query = useQuery({
-        queryKey: ["game", gameId],
-        queryFn: () => getGame(gameId),
+        queryKey: ["game", gameId, "detail"],
+        queryFn: () => getGameDetail(gameId),
     });
     return {
-        gameData: query.data,
+        gameDetail: query.data,
+        isLoading: query.isLoading || query.isFetching,
+        error: query.error,
+    };
+};
+
+const useGameState = (gameId: string) => {
+    const query = useQuery({
+        queryKey: ["game", gameId, "state"],
+        queryFn: () => getGameState(gameId),
+    });
+    return {
+        gameState: query.data,
         isLoading: query.isLoading || query.isFetching,
         error: query.error,
     };
@@ -39,8 +56,9 @@ const useUpdateGameState = (gameId: string) => {
         mutationFn: (change: GameStateChange) =>
             updateGameState(gameId, change),
         onSuccess: (newState) => {
-            queryClient.setQueryData<GameData>(["game", gameId], (current) =>
-                current ? { ...current, gameState: newState } : current,
+            queryClient.setQueryData<GameState>(
+                ["game", gameId, "state"],
+                newState,
             );
         },
     });
@@ -52,4 +70,4 @@ const useUpdateGameState = (gameId: string) => {
     } as const;
 };
 
-export { useCreateGame, useGame, useUpdateGameState };
+export { useCreateGame, useGameDetail, useGameState, useUpdateGameState };

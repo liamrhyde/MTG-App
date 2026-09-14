@@ -2,13 +2,18 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { GameDeckSection } from "@/views/Game/GameDeckSection";
 import type { GameStateChange, DeckHealthChange } from "@/schemas";
-import { useGame, useUpdateGameState } from "@/hooks/useGames";
+import {
+    useGameDetail,
+    useGameState,
+    useUpdateGameState,
+} from "@/hooks/useGames";
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
     const [selectedDeckId, setSelectedDeckId] = useState<number | null>(null);
 
-    const { gameData } = useGame(gameId);
+    const { gameDetail } = useGameDetail(gameId);
+    const { gameState } = useGameState(gameId);
     const { updateGameState } = useUpdateGameState(gameId);
 
     const [gameStateChange, setGameStateChange] =
@@ -63,16 +68,15 @@ export const GameView = () => {
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
-                {gameData &&
-                    Object.entries(gameData.gameMembers).map(
+                {gameDetail &&
+                    gameState &&
+                    Object.entries(gameDetail.gameMembers).map(
                         ([deckId, memberData]) => (
                             <GameDeckSection
                                 key={deckId}
                                 gameDeckId={memberData.deckId}
-                                memberData={gameData.gameMembers}
-                                deckGameState={
-                                    gameData.gameState?.[Number(deckId)]
-                                }
+                                memberData={gameDetail.gameMembers}
+                                deckGameState={gameState[Number(deckId)]}
                                 selectedDeckId={selectedDeckId}
                                 onSelect={handleSelectDeck}
                                 onHealthStateChange={handleHealthChange}

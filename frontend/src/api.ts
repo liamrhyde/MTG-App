@@ -4,7 +4,7 @@ import type {
     Deck,
     CreateDeck,
     CreateGame,
-    GameData,
+    GameDetail,
     GameState,
     GameStateChange,
 } from "@/schemas";
@@ -55,9 +55,14 @@ export const createGame = async (input: CreateGame): Promise<string> => {
     return json<string>(res);
 };
 
-export const getGame = async (input: string): Promise<GameData> => {
+export const getGameDetail = async (input: string): Promise<GameDetail> => {
     const res = await fetch(`${BASE_URL}/game/${input}`);
-    return json<GameData>(res);
+    return json<GameDetail>(res);
+};
+
+export const getGameState = async (input: string): Promise<GameState> => {
+    const res = await fetch(`${BASE_URL}/game/${input}/state`);
+    return json<GameState>(res);
 };
 
 export const updateGameState = async (

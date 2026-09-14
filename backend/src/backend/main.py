@@ -7,7 +7,7 @@ from backend.schemas import (
     Deck,
     DeckCreate,
     Game,
-    GameDataResponse,
+    GameDetail,
     GameMember,
     NewGameData,
     Player,
@@ -68,7 +68,7 @@ def create_deck(deck: DeckCreate, repository: RepositoryDep):
     return repository.create_deck(DeckRecord(**deck.model_dump()))
 
 
-@app.get("/game/{game_id}", response_model=GameDataResponse)
+@app.get("/game/{game_id}", response_model=GameDetail)
 def get_game_data(repository: RepositoryDep, game_id: int):
     game = repository.get_game(game_id)
     if not game or game.id is None:
@@ -79,9 +79,15 @@ def get_game_data(repository: RepositoryDep, game_id: int):
         )
         for m in game.game_members
     }
-    return GameDataResponse(
-        game_id=game.id, game_members=game_members_by_id, game_state=game.state
-    )
+    return GameDetail(game_id=game.id, game_members=game_members_by_id)
+
+
+@app.get("/game/{game_id}/state", response_model=dict[int, DeckHealth])
+def get_game_state(repository: RepositoryDep, game_id: int):
+    game = repository.get_game(game_id)
+    if not game or game.id is None:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return game.state
 
 
 @app.post("/game")

@@ -1,12 +1,12 @@
 from collections.abc import Sequence
 
-from db.models import CamelBaseModel, DeckHealth, GameStatus
+from db.models import CamelBaseModel, GameStatus
 
 __all__ = [
     "Deck",
     "DeckCreate",
     "Game",
-    "GameDataResponse",
+    "GameDetail",
     "GameMember",
     "NewGameData",
     "NewGameSelection",
@@ -56,7 +56,6 @@ class GameMember(CamelBaseModel):
     player_name: str
 
 
-class GameDataResponse(CamelBaseModel):
+class GameDetail(CamelBaseModel):
     game_id: int
     game_members: dict[int, GameMember]
-    game_state: dict[int, DeckHealth]
