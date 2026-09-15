@@ -3,9 +3,15 @@ import {
     getGameDetail,
     getGameState,
     updateGameState,
+    WS_BASE_URL,
 } from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GameState, GameStateChange } from "@/schemas";
+import type {
+    GameState,
+    GameStateChange,
+    GameStateChangedMessage,
+} from "@/schemas";
+import { useEffect } from "react";
 
 const useCreateGame = () => {
     const queryClient = useQueryClient();
@@ -68,6 +74,23 @@ const useUpdateGameState = (gameId: string) => {
         isPending: updateGameStateMutation.isPending,
         error: updateGameStateMutation.error,
     } as const;
+};
+
+export const useGameSocket = (gameId: string) => {
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        const ws = new WebSocket(`${WS_BASE_URL}/ws/game/${gameId}`);
+        ws.onmessage = (event) => {
+            const msg: GameStateChangedMessage = JSON.parse(event.data);
+            console.log(msg.type);
+            if (msg.type === "gameStateChanged") {
+                queryClient.invalidateQueries({
+                    queryKey: ["game", gameId, "state"],
+                });
+            }
+        };
+        return () => ws.close();
+    }, [gameId, queryClient]);
 };
 
 export { useCreateGame, useGameDetail, useGameState, useUpdateGameState };

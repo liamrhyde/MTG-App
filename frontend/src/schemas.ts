@@ -80,3 +80,8 @@ export interface GameStateChange {
         DeckHealthChange
     >;
 }
+
+export interface GameStateChangedMessage {
+    type: "gameStateChanged";
+    gameId: number;
+}

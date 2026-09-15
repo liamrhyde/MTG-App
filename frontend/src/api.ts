@@ -9,7 +9,9 @@ import type {
     GameStateChange,
 } from "@/schemas";
 
-const BASE_URL = "http://localhost:8000";
+const API_HOST = "localhost:8000";
+const BASE_URL = `http://${API_HOST}`;
+export const WS_BASE_URL = `ws://${API_HOST}`;
 
 async function json<T>(res: Response): Promise<T> {
     if (!res.ok) {

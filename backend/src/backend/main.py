@@ -1,8 +1,15 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import (
+    BackgroundTasks,
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.realtime import ConnectionManager
 from backend.schemas import (
     Deck,
     DeckCreate,
@@ -19,10 +26,13 @@ from db.records import DeckRecord, PlayerRecord
 
 from .repository import RepositoryDep
 
+ALLOWED_ORIGINS = ["http://localhost:5173"]  # Vite dev server
+
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(app: FastAPI):
     init_db()
+    app.state.connection_manager = ConnectionManager()
     yield
 
 
@@ -30,7 +40,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -90,6 +100,22 @@ def get_game_state(repository: RepositoryDep, game_id: int):
     return game.state
 
 
+@app.websocket("/ws/game/{game_id}")
+async def game_socket(websocket: WebSocket, game_id: int):
+    if websocket.headers.get("origin") not in ALLOWED_ORIGINS:
+        await websocket.close(code=1008)
+        return
+    manager: ConnectionManager = websocket.app.state.connection_manager
+    await manager.connect(game_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # read-only subscriber; ignore content
+    except WebSocketDisconnect:
+        pass
+    finally:
+        manager.disconnect(game_id, websocket)
+
+
 @app.post("/game")
 def create_game(repository: RepositoryDep, game_data: NewGameData):
     # Ensure all players exist
@@ -116,8 +142,18 @@ def get_games(repository: RepositoryDep):
 
 
 @app.patch("/game/{game_id}/state", response_model=dict[int, DeckHealth])
-def update_game_state(repository: RepositoryDep, game_id: int, change: GameStateChange):
+def update_game_state(
+    repository: RepositoryDep,
+    game_id: int,
+    change: GameStateChange,
+    background_tasks: BackgroundTasks,
+):
     game = repository.apply_game_state_change(game_id, change)
     if game is None:
         raise HTTPException(status_code=404, detail="Game not found")
+    background_tasks.add_task(
+        app.state.connection_manager.broadcast,
+        game_id,
+        {"type": "gameStateChanged", "gameId": game_id},
+    )
     return game.state

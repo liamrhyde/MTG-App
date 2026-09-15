@@ -4,6 +4,7 @@ import { GameDeckSection } from "@/views/Game/GameDeckSection";
 import type { GameStateChange, DeckHealthChange } from "@/schemas";
 import {
     useGameDetail,
+    useGameSocket,
     useGameState,
     useUpdateGameState,
 } from "@/hooks/useGames";
@@ -15,6 +16,7 @@ export const GameView = () => {
     const { gameDetail } = useGameDetail(gameId);
     const { gameState } = useGameState(gameId);
     const { updateGameState } = useUpdateGameState(gameId);
+    useGameSocket(gameId);
 
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
