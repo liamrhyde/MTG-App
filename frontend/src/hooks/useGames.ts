@@ -11,7 +11,8 @@ import type {
     GameStateChange,
     GameStateChangedMessage,
 } from "@/schemas";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 const useCreateGame = () => {
     const queryClient = useQueryClient();
@@ -78,19 +79,34 @@ const useUpdateGameState = (gameId: string) => {
 
 export const useGameSocket = (gameId: string) => {
     const queryClient = useQueryClient();
-    useEffect(() => {
-        const ws = new WebSocket(`${WS_BASE_URL}/ws/game/${gameId}`);
-        ws.onmessage = (event) => {
-            const msg: GameStateChangedMessage = JSON.parse(event.data);
-            console.log(msg.type);
-            if (msg.type === "gameStateChanged") {
-                queryClient.invalidateQueries({
-                    queryKey: ["game", gameId, "state"],
-                });
-            }
-        };
-        return () => ws.close();
-    }, [gameId, queryClient]);
+    const [lastMessage, setLastMessage] =
+        useState<GameStateChangedMessage | null>(null);
+    const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+    const handleMessage = useCallback(
+        (msg: GameStateChangedMessage) => {
+            if (msg.type !== "gameStateChanged") return;
+            queryClient.invalidateQueries({
+                queryKey: ["game", gameId, "state"],
+            });
+            setLastMessage(msg);
+            clearTimeout(dismissTimeoutRef.current);
+            dismissTimeoutRef.current = setTimeout(
+                () => setLastMessage(null),
+                3000,
+            );
+        },
+        [gameId, queryClient],
+    );
+
+    useWebSocket<GameStateChangedMessage>(
+        `${WS_BASE_URL}/ws/game/${gameId}`,
+        handleMessage,
+    );
+
+    useEffect(() => () => clearTimeout(dismissTimeoutRef.current), []);
+
+    return { lastMessage };
 };
 
 export { useCreateGame, useGameDetail, useGameState, useUpdateGameState };
