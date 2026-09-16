@@ -9,7 +9,14 @@ from sqlmodel import Field, Relationship, SQLModel
 from db.db_utils import pydantic_json
 from db.models import DeckHealth, GameStateChange, GameStatus
 
-__all__ = ["DeckGameRecord", "DeckRecord", "GameRecord", "PlayerRecord"]
+__all__ = [
+    "DeckGameRecord",
+    "DeckRecord",
+    "GameRecord",
+    "GameTurnRecord",
+    "PlayerRecord",
+    "TurnEventRecord",
+]
 
 
 class PlayerRecord(SQLModel, table=True):
@@ -46,7 +53,7 @@ class GameRecord(SQLModel, table=True):
 
     game_members: list["DeckGameRecord"] = Relationship(back_populates="game")
 
-    # TODO: Add 'events' model
+    game_turns: list["GameTurnRecord"] = Relationship(back_populates="game")
 
     def init_game_state(self, deck_ids: list[int]):
         self.state = {d_id: DeckHealth(deck_id=d_id) for d_id in deck_ids}
@@ -78,8 +85,9 @@ class GameRecord(SQLModel, table=True):
 class DeckGameRecord(SQLModel, table=True):
     __tablename__ = "deckgame"
 
-    game_id: int = Field(foreign_key="game.id", primary_key=True)
-    deck_id: int = Field(foreign_key="deck.id", primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
+    game_id: int = Field(foreign_key="game.id")
+    deck_id: int = Field(foreign_key="deck.id")
     player_id: int = Field(foreign_key="player.id")
 
     game: GameRecord = Relationship(back_populates="game_members")
@@ -91,3 +99,39 @@ class DeckGameRecord(SQLModel, table=True):
     eliminations: int | None = Field(default=None)
     damage_out: int | None = Field(default=None)
     damage_in: int | None = Field(default=None)
+
+
+class GameTurnRecord(SQLModel, table=True):
+    __tablename__ = "gameturn"
+
+    id: int | None = Field(default=None, primary_key=True)
+    game_id: int = Field(foreign_key="game.id")
+    source_id: int = Field(foreign_key="deckgame.id")
+
+    state_change: GameStateChange = Field(sa_type=pydantic_json(GameStateChange))
+
+    game: GameRecord = Relationship(back_populates="game_turns")
+    source: DeckGameRecord = Relationship()
+    events: list["TurnEventRecord"] = Relationship(back_populates="turn")
+
+
+class TurnEventRecord(SQLModel, table=True):
+    __tablename__ = "turnevent"
+
+    id: int | None = Field(default=None, primary_key=True)
+    turn_id: int = Field(foreign_key="gameturn.id")
+    source_deck_id: int = Field(foreign_key="deckgame.id")
+    target_deck_id: int = Field(foreign_key="deckgame.id")
+
+    damage: int = Field(default=0)
+    commander_damage: int = Field(default=0)
+    poison_damage: int = Field(default=0)
+    is_elimination: bool = Field(default=False)
+
+    turn: GameTurnRecord = Relationship(back_populates="events")
+    source_deck: DeckGameRecord = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "TurnEventRecord.source_deck_id"}
+    )
+    target_deck: DeckGameRecord = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "TurnEventRecord.target_deck_id"}
+    )

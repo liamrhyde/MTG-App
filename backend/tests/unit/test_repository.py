@@ -3,7 +3,14 @@ from sqlmodel import Session, select
 
 from backend.repository import Repository
 from db.models import DeckHealthChange, DeckPlayerSelection, GameStateChange, GameStatus
-from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
+from db.records import (
+    DeckGameRecord,
+    DeckRecord,
+    GameRecord,
+    GameTurnRecord,
+    PlayerRecord,
+    TurnEventRecord,
+)
 
 
 class TestGetPlayer:
@@ -412,3 +419,150 @@ class TestApplyGameStateChange:
 
         with pytest.raises(ValueError):
             repository.apply_game_state_change(game_id, change)
+
+
+class TestRecordGameTurn:
+    def _make_game(
+        self, session: Session, repository: Repository
+    ) -> tuple[int, int, int]:
+        player_1 = PlayerRecord(name="Alice")
+        player_2 = PlayerRecord(name="Bob")
+        session.add(player_1)
+        session.add(player_2)
+        session.commit()
+        session.refresh(player_1)
+        session.refresh(player_2)
+        assert player_1.id is not None
+        assert player_2.id is not None
+
+        deck_1 = DeckRecord(name="Mono Red", owner_id=player_1.id)
+        deck_2 = DeckRecord(name="Mono Blue", owner_id=player_2.id)
+        session.add(deck_1)
+        session.add(deck_2)
+        session.commit()
+        session.refresh(deck_1)
+        session.refresh(deck_2)
+        assert deck_1.id is not None
+        assert deck_2.id is not None
+
+        game = repository.create_game(
+            [
+                DeckPlayerSelection(deck_id=deck_1.id, player_id=player_1.id),
+                DeckPlayerSelection(deck_id=deck_2.id, player_id=player_2.id),
+            ]
+        )
+        assert game.id is not None
+
+        return game.id, deck_1.id, deck_2.id
+
+    def test_decomposes_change_into_turn_and_events(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-5, poison=2, commander=3)},
+        )
+
+        repository.apply_game_state_change(game_id, change)
+
+        turns = session.exec(select(GameTurnRecord)).all()
+        assert len(turns) == 1
+        turn = turns[0]
+        assert turn.game_id == game_id
+        assert turn.source.deck_id == deck_1_id
+        assert turn.state_change == change
+
+        events = session.exec(
+            select(TurnEventRecord).where(TurnEventRecord.turn_id == turn.id)
+        ).all()
+        assert len(events) == 1
+        event = events[0]
+        assert event.source_deck.deck_id == deck_1_id
+        assert event.target_deck.deck_id == deck_2_id
+        assert event.damage == 5
+        assert event.poison_damage == 2
+        assert event.commander_damage == 3
+
+    def test_decomposes_change_into_one_event_per_target(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={
+                deck_1_id: DeckHealthChange(health=-1),
+                deck_2_id: DeckHealthChange(health=-2),
+            },
+        )
+
+        repository.apply_game_state_change(game_id, change)
+
+        turns = session.exec(select(GameTurnRecord)).all()
+        assert len(turns) == 1
+
+        events = session.exec(
+            select(TurnEventRecord).where(TurnEventRecord.turn_id == turns[0].id)
+        ).all()
+        assert len(events) == 2
+        by_target = {e.target_deck.deck_id: e for e in events}
+        assert by_target[deck_1_id].damage == 1
+        assert by_target[deck_2_id].damage == 2
+
+    def test_elimination_flagged_on_lethal_health(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-41)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        event = session.exec(select(TurnEventRecord)).one()
+        assert event.is_elimination is True
+
+    def test_elimination_flagged_on_lethal_poison(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(poison=11)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        event = session.exec(select(TurnEventRecord)).one()
+        assert event.is_elimination is True
+
+    def test_elimination_flagged_on_lethal_commander_damage(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(commander=21)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        event = session.exec(select(TurnEventRecord)).one()
+        assert event.is_elimination is True
+
+    def test_elimination_not_flagged_below_thresholds(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=0, poison=10, commander=20)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        event = session.exec(select(TurnEventRecord)).one()
+        assert event.is_elimination is False

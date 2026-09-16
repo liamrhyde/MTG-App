@@ -6,7 +6,17 @@ from sqlmodel import Session, col, select
 
 from db import SessionDep
 from db.models import DeckPlayerSelection, GameStateChange
-from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
+from db.records import (
+    DeckGameRecord,
+    DeckRecord,
+    GameRecord,
+    GameTurnRecord,
+    PlayerRecord,
+    TurnEventRecord,
+)
+
+COMMANDER_DAMAGE_LETHAL = 20
+POISON_LETHAL = 10
 
 
 class Repository:
@@ -96,8 +106,37 @@ class Repository:
         if game is None:
             return None
         game.apply_state_change(change)
+        self._record_game_turn(game, change)
         self.commit()
         return game
+
+    def _record_game_turn(self, game: GameRecord, change: GameStateChange) -> None:
+        deck_games_by_deck = {dg.deck_id: dg for dg in game.game_members}
+        source_deck_game = deck_games_by_deck[change.source_deck]
+
+        turn = GameTurnRecord(game=game, source=source_deck_game, state_change=change)
+
+        for target_id, delta in change.targets.items():
+            target_state = game.state[target_id]
+            target_commander_damage = target_state.commander.get(change.source_deck, 0)
+            is_elimination = (
+                target_state.health < 0
+                or target_state.poison > POISON_LETHAL
+                or target_commander_damage > COMMANDER_DAMAGE_LETHAL
+            )
+            self.session.add(
+                TurnEventRecord(
+                    turn=turn,
+                    source_deck=source_deck_game,
+                    target_deck=deck_games_by_deck[target_id],
+                    damage=-delta.health,
+                    commander_damage=delta.commander,
+                    poison_damage=delta.poison,
+                    is_elimination=is_elimination,
+                )
+            )
+
+        self.session.add(turn)
 
 
 def get_repository(session: SessionDep):
