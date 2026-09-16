@@ -34,6 +34,28 @@ repos:
         language: system
         files: ^frontend/.*\.(m?[jt]sx?|json|jsonc|css|scss|html|md|ya?ml)$
 
+      # Refreezes backend/requirements.txt from `uv pip freeze` whenever the
+      # uv config changes. --locked stops the commit if uv.lock is itself out
+      # of sync with pyproject.toml. Rewritten file is left unstaged so the
+      # dev reviews it before re-adding.
+      - id: freeze-requirements
+        name: freeze requirements.txt (uv)
+        entry: >-
+          bash -c '
+          cd backend &&
+          uv sync --locked -q &&
+          uv pip freeze > requirements.txt.new &&
+          if ! diff -q requirements.txt requirements.txt.new > /dev/null; then
+            mv requirements.txt.new requirements.txt;
+            echo "backend/requirements.txt was stale and has been regenerated from uv. Review and git add it, then commit again.";
+            exit 1;
+          fi;
+          rm -f requirements.txt.new
+          '
+        language: system
+        pass_filenames: false
+        files: ^backend/(pyproject\.toml|uv\.lock)$
+
   # Lint + format backend. ruff auto-discovers backend/pyproject.toml per file.
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.5
