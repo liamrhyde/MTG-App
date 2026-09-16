@@ -566,3 +566,114 @@ class TestRecordGameTurn:
 
         event = session.exec(select(TurnEventRecord)).one()
         assert event.is_elimination is False
+
+    def _deck_game(
+        self, session: Session, game_id: int, deck_id: int
+    ) -> DeckGameRecord:
+        return session.exec(
+            select(DeckGameRecord).where(
+                DeckGameRecord.game_id == game_id, DeckGameRecord.deck_id == deck_id
+            )
+        ).one()
+
+    def test_updates_damage_out_on_source_and_damage_in_on_target(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-5)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        target = self._deck_game(session, game_id, deck_2_id)
+        assert source.damage_out == 5
+        assert source.damage_in is None
+        assert target.damage_in == 5
+        assert target.damage_out is None
+
+    def test_damage_stats_accumulate_across_multiple_turns(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-5)},
+        )
+        repository.apply_game_state_change(game_id, change)
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        target = self._deck_game(session, game_id, deck_2_id)
+        assert source.damage_out == 10
+        assert target.damage_in == 10
+
+    def test_damage_stats_split_across_multiple_targets(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={
+                deck_1_id: DeckHealthChange(health=-1),
+                deck_2_id: DeckHealthChange(health=-2),
+            },
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        target = self._deck_game(session, game_id, deck_2_id)
+        # Source deck both deals damage and self-targets, so damage_out
+        # covers both events, while damage_in only covers the self-hit.
+        assert source.damage_out == 3
+        assert source.damage_in == 1
+        assert target.damage_in == 2
+
+    def test_eliminations_increment_on_source_deck(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-41)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        target = self._deck_game(session, game_id, deck_2_id)
+        assert source.eliminations == 1
+        assert target.eliminations is None
+
+    def test_eliminations_do_not_increment_below_threshold(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-1)},
+        )
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        assert source.eliminations is None
+
+    def test_eliminations_accumulate_across_multiple_kills(
+        self, session: Session, repository: Repository
+    ):
+        game_id, deck_1_id, deck_2_id = self._make_game(session, repository)
+
+        change = GameStateChange(
+            source_deck=deck_1_id,
+            targets={deck_2_id: DeckHealthChange(health=-41)},
+        )
+        repository.apply_game_state_change(game_id, change)
+        repository.apply_game_state_change(game_id, change)
+
+        source = self._deck_game(session, game_id, deck_1_id)
+        assert source.eliminations == 2

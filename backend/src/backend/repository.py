@@ -117,6 +117,7 @@ class Repository:
         turn = GameTurnRecord(game=game, source=source_deck_game, state_change=change)
 
         for target_id, delta in change.targets.items():
+            target_deck_game = deck_games_by_deck[target_id]
             target_state = game.state[target_id]
             target_commander_damage = target_state.commander.get(change.source_deck, 0)
             is_elimination = (
@@ -124,17 +125,24 @@ class Repository:
                 or target_state.poison > POISON_LETHAL
                 or target_commander_damage > COMMANDER_DAMAGE_LETHAL
             )
+            damage = -delta.health
+
             self.session.add(
                 TurnEventRecord(
                     turn=turn,
                     source_deck=source_deck_game,
-                    target_deck=deck_games_by_deck[target_id],
-                    damage=-delta.health,
+                    target_deck=target_deck_game,
+                    damage=damage,
                     commander_damage=delta.commander,
                     poison_damage=delta.poison,
                     is_elimination=is_elimination,
                 )
             )
+
+            source_deck_game.damage_out = (source_deck_game.damage_out or 0) + damage
+            target_deck_game.damage_in = (target_deck_game.damage_in or 0) + damage
+            if is_elimination:
+                source_deck_game.eliminations = (source_deck_game.eliminations or 0) + 1
 
         self.session.add(turn)
 
