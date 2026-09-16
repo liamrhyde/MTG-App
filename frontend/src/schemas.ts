@@ -68,6 +68,7 @@ export interface GameDetail {
 }
 
 export interface DeckHealthChange {
+    // TODO: add an `eliminated` flag per target
     health: number;
     poison: number;
     commander: number;
@@ -84,4 +85,6 @@ export interface GameStateChange {
 export interface GameStateChangedMessage {
     type: "gameStateChanged";
     gameId: number;
+    gameState: GameState;
+    change: GameStateChange;
 }

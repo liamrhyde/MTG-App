@@ -59,6 +59,7 @@ class DeckPlayerSelection(BaseModel):
 class DeckHealthChange(CamelBaseModel):
     """A pending delta to apply to one target deck's `DeckHealth`."""
 
+    # TODO: add an `eliminated` flag per target
     health: int = 0
     poison: int = 0
     commander: int = 0

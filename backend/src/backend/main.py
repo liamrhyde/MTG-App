@@ -154,6 +154,14 @@ def update_game_state(
     background_tasks.add_task(
         app.state.connection_manager.broadcast,
         game_id,
-        {"type": "gameStateChanged", "gameId": game_id},
+        {
+            "type": "gameStateChanged",
+            "gameId": game_id,
+            "gameState": {
+                deck_id: health.model_dump(by_alias=True)
+                for deck_id, health in game.state.items()
+            },
+            "change": change.model_dump(by_alias=True),
+        },
     )
     return game.state
