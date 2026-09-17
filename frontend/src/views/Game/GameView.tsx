@@ -70,7 +70,11 @@ export const GameView = () => {
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
-            <GameChangeManager changes={gameChanges} subscribe={subscribe} />
+            <GameChangeManager
+                changes={gameChanges}
+                gameDetail={gameDetail}
+                subscribe={subscribe}
+            />
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
                 {gameDetail &&
                     gameState &&
