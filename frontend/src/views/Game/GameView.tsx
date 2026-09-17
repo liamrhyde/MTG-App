@@ -75,7 +75,7 @@ export const GameView = () => {
                 gameDetail={gameDetail}
                 subscribe={subscribe}
             />
-            <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
+            <div className="grid grid-flow-col auto-cols-fr grid-rows-2 has-[>*:nth-child(2):last-child]:grid-rows-1 [&>*:nth-child(odd):last-child]:row-span-2 flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
                 {gameDetail &&
                     gameState &&
                     Object.entries(gameDetail.gameMembers).map(
