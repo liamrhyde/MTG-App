@@ -11,7 +11,7 @@ import type {
     GameStateChange,
     GameStateChangedMessage,
 } from "@/schemas";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 
 const useCreateGame = () => {
@@ -77,24 +77,24 @@ const useUpdateGameState = (gameId: string) => {
     } as const;
 };
 
+type GameChangeListener = (msg: GameStateChangedMessage) => void;
+
 export const useGameSocket = (gameId: string) => {
     const queryClient = useQueryClient();
-    const [lastMessage, setLastMessage] =
-        useState<GameStateChangedMessage | null>(null);
-    const dismissTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+    const [gameChanges, setGameChanges] = useState<GameStateChangedMessage[]>(
+        [],
+    );
+    const listenersRef = useRef(new Set<GameChangeListener>());
 
     const handleMessage = useCallback(
         (msg: GameStateChangedMessage) => {
             if (msg.type !== "gameStateChanged") return;
-            queryClient.invalidateQueries({
-                queryKey: ["game", gameId, "state"],
-            });
-            setLastMessage(msg);
-            clearTimeout(dismissTimeoutRef.current);
-            dismissTimeoutRef.current = setTimeout(
-                () => setLastMessage(null),
-                3000,
+            queryClient.setQueryData<GameState>(
+                ["game", gameId, "state"],
+                msg.gameState,
             );
+            setGameChanges((prev) => [...prev, msg]);
+            listenersRef.current.forEach((listener) => listener(msg));
         },
         [gameId, queryClient],
     );
@@ -104,9 +104,12 @@ export const useGameSocket = (gameId: string) => {
         handleMessage,
     );
 
-    useEffect(() => () => clearTimeout(dismissTimeoutRef.current), []);
+    const subscribe = useCallback((listener: GameChangeListener) => {
+        listenersRef.current.add(listener);
+        return () => listenersRef.current.delete(listener);
+    }, []);
 
-    return { lastMessage };
+    return { gameChanges, subscribe };
 };
 
 export { useCreateGame, useGameDetail, useGameState, useUpdateGameState };

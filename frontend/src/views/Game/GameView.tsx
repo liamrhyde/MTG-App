@@ -8,7 +8,7 @@ import {
     useGameState,
     useUpdateGameState,
 } from "@/hooks/useGames";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { GameChangeManager } from "@/components/GameChangeManager";
 
 export const GameView = () => {
     const { gameId } = useParams<{ gameId: string }>();
@@ -17,7 +17,7 @@ export const GameView = () => {
     const { gameDetail } = useGameDetail(gameId);
     const { gameState } = useGameState(gameId);
     const { updateGameState } = useUpdateGameState(gameId);
-    const { lastMessage } = useGameSocket(gameId);
+    const { gameChanges, subscribe } = useGameSocket(gameId);
 
     const [gameStateChange, setGameStateChange] =
         useState<GameStateChange | null>();
@@ -70,11 +70,7 @@ export const GameView = () => {
 
     return (
         <div className="relative flex flex-col h-dvh bg-background overflow-hidden">
-            {lastMessage && (
-                <Alert className="absolute top-4 right-4 z-50 w-auto max-w-xs shadow-lg">
-                    <AlertDescription>Game State Changed</AlertDescription>
-                </Alert>
-            )}
+            <GameChangeManager changes={gameChanges} subscribe={subscribe} />
             <div className="grid grid-rows-2 grid-flow-col auto-cols-fr flex-1 min-h-0 gap-2 lg:gap-3 p-0 md:p-1">
                 {gameDetail &&
                     gameState &&

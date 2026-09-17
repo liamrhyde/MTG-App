@@ -84,6 +84,7 @@ export interface GameStateChange {
 
 export interface GameStateChangedMessage {
     type: "gameStateChanged";
+    id: number;
     gameId: number;
     gameState: GameState;
     change: GameStateChange;
