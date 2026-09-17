@@ -148,14 +148,16 @@ def update_game_state(
     change: GameStateChange,
     background_tasks: BackgroundTasks,
 ):
-    game = repository.apply_game_state_change(game_id, change)
-    if game is None:
+    result = repository.apply_game_state_change(game_id, change)
+    if result is None:
         raise HTTPException(status_code=404, detail="Game not found")
+    game, turn = result
     background_tasks.add_task(
         app.state.connection_manager.broadcast,
         game_id,
         {
             "type": "gameStateChanged",
+            "id": turn.id,
             "gameId": game_id,
             "gameState": {
                 deck_id: health.model_dump(by_alias=True)

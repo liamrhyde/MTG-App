@@ -355,11 +355,13 @@ class TestApplyGameStateChange:
         result = repository.apply_game_state_change(game_id, change)
 
         assert result is not None
-        assert result.state[deck_2_id].health == 37
-        assert result.state[deck_2_id].poison == 1
-        assert result.state[deck_2_id].commander == {deck_1_id: 3}
+        game, turn = result
+        assert turn.id is not None
+        assert game.state[deck_2_id].health == 37
+        assert game.state[deck_2_id].poison == 1
+        assert game.state[deck_2_id].commander == {deck_1_id: 3}
         # Untouched deck is unaffected
-        assert result.state[deck_1_id].health == 40
+        assert game.state[deck_1_id].health == 40
 
     def test_commander_damage_accumulates_across_calls(
         self, session: Session, repository: Repository
@@ -374,7 +376,8 @@ class TestApplyGameStateChange:
         result = repository.apply_game_state_change(game_id, change)
 
         assert result is not None
-        assert result.state[deck_2_id].commander == {deck_1_id: 6}
+        game, _turn = result
+        assert game.state[deck_2_id].commander == {deck_1_id: 6}
 
     def test_self_targeting_is_allowed(self, session: Session, repository: Repository):
         game_id, deck_1_id, _ = self._make_game(session, repository)
@@ -387,8 +390,9 @@ class TestApplyGameStateChange:
         result = repository.apply_game_state_change(game_id, change)
 
         assert result is not None
-        assert result.state[deck_1_id].health == 39
-        assert result.state[deck_1_id].poison == 1
+        game, _turn = result
+        assert game.state[deck_1_id].health == 39
+        assert game.state[deck_1_id].poison == 1
 
     def test_returns_none_for_missing_game(self, repository: Repository):
         change = GameStateChange(source_deck=1, targets={})

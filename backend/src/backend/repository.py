@@ -101,16 +101,18 @@ class Repository:
 
     def apply_game_state_change(
         self, game_id: int, change: GameStateChange
-    ) -> GameRecord | None:
+    ) -> tuple[GameRecord, GameTurnRecord] | None:
         game = self.get_game(game_id)
         if game is None:
             return None
         game.apply_state_change(change)
-        self._record_game_turn(game, change)
+        turn = self._record_game_turn(game, change)
         self.commit()
-        return game
+        return game, turn
 
-    def _record_game_turn(self, game: GameRecord, change: GameStateChange) -> None:
+    def _record_game_turn(
+        self, game: GameRecord, change: GameStateChange
+    ) -> GameTurnRecord:
         deck_games_by_deck = {dg.deck_id: dg for dg in game.game_members}
         source_deck_game = deck_games_by_deck[change.source_deck]
 
@@ -145,6 +147,7 @@ class Repository:
                 source_deck_game.eliminations = (source_deck_game.eliminations or 0) + 1
 
         self.session.add(turn)
+        return turn
 
 
 def get_repository(session: SessionDep):
