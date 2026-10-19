@@ -4,9 +4,11 @@ import type {
     Deck,
     CreateDeck,
     CreateGame,
+    Game,
     GameDetail,
     GameState,
     GameStateChange,
+    GameStatus,
 } from "@/schemas";
 
 const API_HOST = "localhost:8000";
@@ -55,6 +57,23 @@ export const createGame = async (input: CreateGame): Promise<string> => {
         body: JSON.stringify(input),
     });
     return json<string>(res);
+};
+
+export interface GameFilters {
+    status?: GameStatus;
+    playerId?: number;
+}
+
+export const getGames = async (
+    filters: GameFilters = {},
+): Promise<Record<number, Game>> => {
+    const params = new URLSearchParams();
+    if (filters.status) params.set("status", filters.status);
+    if (filters.playerId !== undefined)
+        params.set("player_id", String(filters.playerId));
+    const query = params.size ? `?${params}` : "";
+    const res = await fetch(`${BASE_URL}/games${query}`);
+    return json<Record<number, Game>>(res);
 };
 
 export const getGameDetail = async (input: string): Promise<GameDetail> => {

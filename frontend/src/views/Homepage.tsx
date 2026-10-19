@@ -57,6 +57,7 @@ export const Homepage = () => {
                             className="flex-[4] rounded-r-none"
                             variant="outline"
                             size="lg"
+                            onClick={() => navigate("/game/join")}
                         >
                             Join Game
                         </Button>

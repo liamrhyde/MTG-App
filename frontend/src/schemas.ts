@@ -56,6 +56,21 @@ export interface DeckGameState {
 
 export type GameState = Record<number, DeckGameState>;
 
+export type GameStatus = "active" | "cancelled" | "completed";
+
+export interface GameParticipant {
+    deckId: number;
+    playerId: number;
+}
+
+export interface Game {
+    id: number;
+    status: GameStatus;
+    playerCount: number | null;
+    state: GameState;
+    gameMembers: GameParticipant[];
+}
+
 export interface GameDeck {
     deckId: number;
     playerName: string;

@@ -1,9 +1,11 @@
 import {
     createGame,
+    getGames,
     getGameDetail,
     getGameState,
     updateGameState,
     WS_BASE_URL,
+    type GameFilters,
 } from "@/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
@@ -31,6 +33,18 @@ const useCreateGame = () => {
         isPending: createGameMutation.isPending,
         error: createGameMutation.error,
     } as const;
+};
+
+const useGames = (filters: GameFilters = {}) => {
+    const query = useQuery({
+        queryKey: ["games", filters],
+        queryFn: () => getGames(filters),
+    });
+    return {
+        games: query.data,
+        isLoading: query.isLoading || query.isFetching,
+        error: query.error,
+    };
 };
 
 const useGameDetail = (gameId: string) => {
@@ -112,4 +126,10 @@ export const useGameSocket = (gameId: string) => {
     return { gameChanges, subscribe };
 };
 
-export { useCreateGame, useGameDetail, useGameState, useUpdateGameState };
+export {
+    useCreateGame,
+    useGames,
+    useGameDetail,
+    useGameState,
+    useUpdateGameState,
+};
