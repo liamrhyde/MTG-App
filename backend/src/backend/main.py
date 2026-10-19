@@ -48,34 +48,42 @@ app.add_middleware(
 
 @app.get("/player/{player_id}", response_model=Player)
 def get_player(repository: RepositoryDep, player_id: int):
-    return repository.get_player(player_id)
+    player = repository.get_player(player_id)
+    if player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+    return Player.from_record(player)
 
 
 @app.get("/players", response_model=dict[int, Player])
 def get_players(repository: RepositoryDep):
     players = repository.get_players()
-    return {p.id: p for p in players}
+    return {p.id: Player.from_record(p) for p in players}
 
 
 @app.post("/player", response_model=Player)
 def create_player(player: PlayerCreate, repository: RepositoryDep):
-    return repository.create_player(PlayerRecord(**player.model_dump()))
+    return Player.from_record(
+        repository.create_player(PlayerRecord(**player.model_dump()))
+    )
 
 
 @app.get("/deck/{deck_id}", response_model=Deck)
 def get_deck(repository: RepositoryDep, deck_id: int):
-    return repository.get_deck(deck_id)
+    deck = repository.get_deck(deck_id)
+    if deck is None:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    return Deck.from_record(deck)
 
 
 @app.get("/decks", response_model=dict[int, Deck])
 def get_decks(repository: RepositoryDep):
     decks = repository.get_decks()
-    return {d.id: d for d in decks}
+    return {d.id: Deck.from_record(d) for d in decks}
 
 
 @app.post("/deck", response_model=Deck)
 def create_deck(deck: DeckCreate, repository: RepositoryDep):
-    return repository.create_deck(DeckRecord(**deck.model_dump()))
+    return Deck.from_record(repository.create_deck(DeckRecord(**deck.model_dump())))
 
 
 @app.get("/game/{game_id}", response_model=GameDetail)
@@ -142,7 +150,7 @@ def get_games(
     player_id: int | None = None,
 ):
     games = repository.get_games(status=status, player_id=player_id)
-    return {g.id: g for g in games}
+    return {g.id: Game.from_record(g) for g in games}
 
 
 @app.patch("/game/{game_id}/state", response_model=dict[int, DeckHealth])

@@ -1,6 +1,11 @@
 from collections.abc import Sequence
+from typing import Generic, TypeVar
+
+from sqlmodel import SQLModel
+from typing_extensions import Self
 
 from db.models import CamelBaseModel, DeckHealth, GameStatus
+from db.records import DeckGameRecord, DeckRecord, GameRecord, PlayerRecord
 
 __all__ = [
     "Deck",
@@ -13,10 +18,27 @@ __all__ = [
     "NewGameSelection",
     "Player",
     "PlayerCreate",
+    "RecordSchema",
 ]
 
+R = TypeVar("R", bound=SQLModel)
 
-class Player(CamelBaseModel):
+
+class RecordSchema(CamelBaseModel, Generic[R]):
+    """Base for schemas that are a direct projection of one record type.
+
+    Subclasses name their source record as the type parameter, e.g.
+    `class Player(RecordSchema[PlayerRecord])`, so `from_record` only accepts
+    that record type. Fields are read off the record by name (`from_attributes`),
+    so each schema field must exist as an attribute on the record.
+    """
+
+    @classmethod
+    def from_record(cls, record: R) -> Self:
+        return cls.model_validate(record)
+
+
+class Player(RecordSchema[PlayerRecord]):
     id: int
     name: str
 
@@ -25,7 +47,7 @@ class PlayerCreate(CamelBaseModel):
     name: str
 
 
-class Deck(CamelBaseModel):
+class Deck(RecordSchema[DeckRecord]):
     id: int
     name: str
     owner_id: int
@@ -36,12 +58,12 @@ class DeckCreate(CamelBaseModel):
     owner_id: int
 
 
-class GameParticipant(CamelBaseModel):
+class GameParticipant(RecordSchema[DeckGameRecord]):
     deck_id: int
     player_id: int
 
 
-class Game(CamelBaseModel):
+class Game(RecordSchema[GameRecord]):
     id: int
     status: GameStatus
     player_count: int | None
