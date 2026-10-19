@@ -33,7 +33,7 @@ export const JoinGame = () => {
     return (
         <div className="flex flex-col h-screen bg-background">
             {/* Header + player filter */}
-            <div className="p-6 pb-4 max-w-screen-xl w-full mx-auto">
+            <div className="p-6 pb-4">
                 <div className="flex items-center gap-2 mb-6">
                     <Button
                         variant="ghost"
@@ -81,7 +81,7 @@ export const JoinGame = () => {
 
             {/* Game list - scrollable */}
             <div className="flex-1 overflow-y-auto p-1">
-                <div className="px-6 pb-6 max-w-screen-xl mx-auto space-y-4">
+                <div className="px-6 pb-6 space-y-4">
                     {isLoading && !games ? (
                         <div className="flex justify-center py-12">
                             <Spinner />
