@@ -21,7 +21,7 @@ from backend.schemas import (
     PlayerCreate,
 )
 from db import init_db
-from db.models import DeckHealth, DeckPlayerSelection, GameStateChange
+from db.models import DeckHealth, DeckPlayerSelection, GameStateChange, GameStatus
 from db.records import DeckRecord, PlayerRecord
 
 from .repository import RepositoryDep
@@ -136,8 +136,12 @@ def create_game(repository: RepositoryDep, game_data: NewGameData):
 
 
 @app.get("/games", response_model=dict[int, Game])
-def get_games(repository: RepositoryDep):
-    games = repository.get_games()
+def get_games(
+    repository: RepositoryDep,
+    status: GameStatus | None = None,
+    player_id: int | None = None,
+):
+    games = repository.get_games(status=status, player_id=player_id)
     return {g.id: g for g in games}
 
 

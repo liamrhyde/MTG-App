@@ -307,6 +307,92 @@ class TestGetGames:
         result = repository.get_games()
         assert len(result) == 0
 
+    def _make_games(
+        self, session: Session, repository: Repository
+    ) -> tuple[dict[str, int], dict[str, int]]:
+        """Seeds a fixed set of games for the filter tests.
+
+        | Game         | Players      | Status    |
+        |--------------|--------------|-----------|
+        | ab_active    | Alice, Bob   | active    |
+        | ab_completed | Alice, Bob   | completed |
+        | bc_cancelled | Bob, Carol   | cancelled |
+        | cd_active    | Carol, Dave  | active    |
+
+        Returns game ids and player ids, both keyed by name.
+        """
+        players = {
+            name: PlayerRecord(name=name) for name in ["Alice", "Bob", "Carol", "Dave"]
+        }
+        session.add_all(players.values())
+        session.commit()
+        decks = {
+            name: DeckRecord(name=f"{name} deck", owner_id=p.id)
+            for name, p in players.items()
+        }
+        session.add_all(decks.values())
+        session.commit()
+
+        player_ids: dict[str, int] = {}
+        deck_ids: dict[str, int] = {}
+        for name, player in players.items():
+            player_id, deck_id = player.id, decks[name].id
+            assert player_id is not None
+            assert deck_id is not None
+            player_ids[name], deck_ids[name] = player_id, deck_id
+
+        game_specs = {
+            "ab_active": (["Alice", "Bob"], GameStatus.ACTIVE),
+            "ab_completed": (["Alice", "Bob"], GameStatus.COMPLETED),
+            "bc_cancelled": (["Bob", "Carol"], GameStatus.CANCELLED),
+            "cd_active": (["Carol", "Dave"], GameStatus.ACTIVE),
+        }
+        game_ids: dict[str, int] = {}
+        for key, (names, status) in game_specs.items():
+            game = repository.create_game(
+                [
+                    DeckPlayerSelection(deck_id=deck_ids[n], player_id=player_ids[n])
+                    for n in names
+                ]
+            )
+            game.status = status
+            session.commit()
+            assert game.id is not None
+            game_ids[key] = game.id
+
+        return game_ids, player_ids
+
+    def test_filters_by_status(self, session: Session, repository: Repository):
+        game_ids, _ = self._make_games(session, repository)
+
+        result = repository.get_games(status=GameStatus.ACTIVE)
+        assert {g.id for g in result} == {game_ids["ab_active"], game_ids["cd_active"]}
+
+    def test_filters_by_player(self, session: Session, repository: Repository):
+        game_ids, player_ids = self._make_games(session, repository)
+
+        result = repository.get_games(player_id=player_ids["Alice"])
+        assert {g.id for g in result} == {
+            game_ids["ab_active"],
+            game_ids["ab_completed"],
+        }
+
+    def test_filters_by_status_and_player(
+        self, session: Session, repository: Repository
+    ):
+        game_ids, player_ids = self._make_games(session, repository)
+
+        result = repository.get_games(
+            status=GameStatus.ACTIVE, player_id=player_ids["Bob"]
+        )
+        assert [g.id for g in result] == [game_ids["ab_active"]]
+
+    def test_player_filter_returns_empty_for_unknown_player(
+        self, session: Session, repository: Repository
+    ):
+        self._make_games(session, repository)
+        assert len(repository.get_games(player_id=999)) == 0
+
 
 class TestApplyGameStateChange:
     def _make_game(
